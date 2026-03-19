@@ -1,0 +1,16 @@
+{
+  "id": "5120017",
+  "name": "加解密",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "10692918",
+      "name": "文件加解密申请",
+      "font_class": "wenjianjiajiemishenqing",
+      "unicode": "eada",
+      "unicode_decimal": 60122
+    }
+  ]
+}
