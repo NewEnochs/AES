@@ -11,9 +11,8 @@ namespace AES.Model
 {
     public class DbContext
     {
-#pragma warning disable CS8602 // 解引用可能出现空引用。
-        string conn = AppConfig.LoadConfig().DefaultConnection;
-#pragma warning restore CS8602 // 解引用可能出现空引用。
+        string conn = AppConfig.Load().DefaultConnection;
+
         //private ILog log = LogManager.GetLogger(Startup.repository.Name, typeof(ChisDbContext));
         public DbContext()
         {

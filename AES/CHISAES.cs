@@ -31,6 +31,17 @@ namespace AES
         /// <returns>密文</returns>
         public static string AESEncrypt(string encryptStr, string IV = "")
         {
+            //byte[] keyArray = UTF8Encoding.UTF8.GetBytes(Key);
+            //byte[] toEncryptArray = UTF8Encoding.UTF8.GetBytes(encryptStr);
+            //RijndaelManaged rDel = new RijndaelManaged();
+            //rDel.Key = keyArray;
+            //rDel.Mode = CipherMode.ECB;
+            //rDel.Padding = PaddingMode.PKCS7;
+            //ICryptoTransform cTransform = rDel.CreateEncryptor();
+            //byte[] resultArray = cTransform.TransformFinalBlock(toEncryptArray, 0, toEncryptArray.Length);
+            //return Convert.ToBase64String(resultArray, 0, resultArray.Length);
+
+
             byte[] keyArray = UTF8Encoding.UTF8.GetBytes(Key);
             byte[] toEncryptArray = UTF8Encoding.UTF8.GetBytes(encryptStr);
             RijndaelManaged rDel = new RijndaelManaged();
@@ -53,6 +64,16 @@ namespace AES
         /// <returns></returns>
         public static string AESDEncrypt(string encryptStr, string IV = "")
         {
+            //byte[] keyArray = UTF8Encoding.UTF8.GetBytes(Key);
+            //byte[] toEncryptArray = Convert.FromBase64String(encryptStr);
+            //RijndaelManaged rDel = new RijndaelManaged();
+            //rDel.Key = keyArray;
+            //rDel.Mode = CipherMode.ECB;
+            //rDel.Padding = PaddingMode.PKCS7;
+            //ICryptoTransform cTransform = rDel.CreateDecryptor();
+            //byte[] resultArray = cTransform.TransformFinalBlock(toEncryptArray, 0, toEncryptArray.Length);
+            //return UTF8Encoding.UTF8.GetString(resultArray);
+
             byte[] keyArray = UTF8Encoding.UTF8.GetBytes(Key);
             byte[] toEncryptArray = Convert.FromBase64String(encryptStr);
             RijndaelManaged rDel = new RijndaelManaged();

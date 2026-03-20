@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static Azure.Core.HttpHeader;
 
 namespace AES
 {
@@ -31,6 +32,13 @@ namespace AES
             try
             {
                 url = url.Replace("//", "/").Replace("http:/", "http://");
+                if (type == 2)
+                {
+                   var resData= await HttpApi(url, jsonstr);
+                    return resData;
+                }
+
+                
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
 
                 request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml,*/*");
@@ -68,6 +76,41 @@ namespace AES
                     return messageinfo;
                 }
                 return null;
+            }
+            catch (Exception ex)
+            {
+                // 这里可以根据需要处理异常
+                throw new Exception($"HTTP请求失败: {ex.Message}", ex);
+            }
+        }
+
+
+
+        public static async Task<MessageInfo> HttpApi(string url, string jsonstr = "", int ymdz = 0, string type = "POST")
+        {
+            string requestUrl = url;
+
+            try
+            {
+                HttpRequestMessage request = new HttpRequestMessage(
+                    new HttpMethod(type.ToUpper()),
+                    requestUrl);
+
+                request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml,*/*");
+                request.Headers.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiLllrvmnKzlhYgiLCJqdGkiOiI2MmE2NTg1NC00NmYyLTRlOTYtYmJiMS0zMTc0YTIzMTYxY2MiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6WyIxMDAwMDEiLCIxMDAwMDExMTAwMSJdLCJuYmYiOjE3Njk1ODAzNjksImV4cCI6MTc2OTY2Njc2OSwiaXNzIjoiZXN0IiwiYXVkIjoiY2hpc3VpIn0.Wn1B9GQVR6qetpZO5G_lUrjlJsxkIsG7pgunrH5nl0M");
+                request.Headers.Add("JTI", "62a65854-46f2-4e96-bbb1-3174a23161cc");
+                var requestData = new { RSASTR = jsonstr };
+                string requestJson = JsonSerializer.Serialize(requestData);
+
+                request.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await _httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                string responseContent = await response.Content.ReadAsStringAsync();
+                var result = EncryptionHelper.AESDEncrypt(responseContent);
+                MessageInfo messageinfo = JsonSerializer.Deserialize<MessageInfo>(result);
+                return messageinfo;
             }
             catch (Exception ex)
             {

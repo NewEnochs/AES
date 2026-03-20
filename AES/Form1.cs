@@ -2,7 +2,11 @@ using AES.DataBase;
 using AES.Helper;
 using AES.Model;
 using AES.Util;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
+using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 
 namespace AES
@@ -11,25 +15,28 @@ namespace AES
     {
 
         #region 页面参数  构造函数
-
         private AppConfig config;
         private int currentIndex;
         private int addressCount;
         int type = 1; //1.慢病 2.公卫
         MessageInfo info = new MessageInfo();   //请求相应内容
 
+        private string lastMbUrl = "/grjkdaGroup/getTopInfo";
+        private string lastGwUrl = "/BSApp/GetList";
+        private string lastMBMW = "begp++A6RxZY/R5h31KNZHcY43C1DKDz7j4JQll7xv2s9ezAc8+9LSDk2nimdJg7OFR1fyTSsS6zs0UFeYr3w4yGsJGS336uwS/uYzgzrkA=";
+        private string lastGwMW = "ZZs63zQI5L0DlzA3t7/7NZK9o8q160ajdAxEJnkxYVrQY4p/xKk/3BSrOFI1Avb+PPmiEQBBw3uk9/dmrHM/1CfX6AqASd0Z+NYsdTHiegEIRhUoJia+PlvyUlilRcIxxQT+YwWwp8jLEnYbMakZdpR8ypDhk7xyUOOawTt0QPLr+0fBf4w4K+WlSBC7ujY5PNXGi0aq4ga9RM5RONXALtjM8gzZi5z29pXspcoDLaPhr3oh4U3Uv4QXykpQo+LPW4EuW0j2GhZuJtZP9p2fxiC9Z2ZXDDzruPtawn/f8yEbC00b4nL916Wr90IJ66dqXBSUJ8vh3Ta8rAYyuUnlQZoMsL1jIghqRHfZpgn0jlgQDp8K/CRCNrajOop7vdN3wROaRJaNghRQEgA0GZRvec246I1y19NgoVFwBFoVkYzAPaLPRBY6Zf/ozF+UgR8U1lrwPaXXQxOpRR2smLY25d5og8a1uAk8sXWHzwW+s94=";
+
         public Form1()
         {
             InitializeComponent();
             // 加载配置
-            config = AppConfig.LoadConfig();
-            addressCount = config.Addresses.Count;
+            config = AppConfig.Load();
 
-            txtRootPath.Text = config.Addresses[0];
-            lblStatus.Text = $"当前地址 ({1}/{addressCount})";
+            ReCalcCount();
 
             txtZH.Text = "superAdmin";
             txtPwd.Text = "Estoom@?2023";
+            button1_Click(null, null);
         }
         #endregion
 
@@ -56,7 +63,7 @@ namespace AES
             {
                 string MingW = txtMingW.Text;
 
-                var mw = CHISAES.AESDEncrypt(MingW);
+                var mw = CHISAES.AESEncrypt(MingW);
                 txtMW.Text = mw;
             }
         }
@@ -83,7 +90,7 @@ namespace AES
                     try
                     {
                         var jsonObject = JObject.Parse(mingw);
-                        string formattedJson = jsonObject.ToString((Newtonsoft.Json.Formatting)Formatting.Indented);
+                        string formattedJson = jsonObject.ToString((Newtonsoft.Json.Formatting)System.Xml.Formatting.Indented);
                         txtMingW.Text = formattedJson;
                     }
                     catch
@@ -97,7 +104,7 @@ namespace AES
                     try
                     {
                         var jsonObject = JObject.Parse(mingw);
-                        string formattedJson = jsonObject.ToString((Newtonsoft.Json.Formatting)Formatting.Indented);
+                        string formattedJson = jsonObject.ToString((Newtonsoft.Json.Formatting)System.Xml.Formatting.Indented);
                         txtMingW.Text = formattedJson;
                     }
                     catch
@@ -143,11 +150,13 @@ namespace AES
 
                 txtZH.Text = "superAdmin";
                 txtPwd.Text = "Estoom@?203";
-                txtRootPath.Text = "http://localhost:8055";
+                txtUrl.Text = lastMbUrl;
+                txtMW.Text = lastMBMW;
+                lastMbUrl = txtUrl.Text;
+                lastMBMW = txtMW.Text;
 
-                txtMY.Text = "GVvVJyrsFRKms8XKhwfwpgB47DtIaZ2p";
-                txtPYL.Text = "4XEUxWxkTSGcEZxe";
-                txtMW.Text = string.Empty;
+                txtMY.Text = "GVvVJyrsFRKms8XKhwfwpgB47DtIaZ2p";    //密匙
+                txtPYL.Text = "4XEUxWxkTSGcEZxe";   // 偏移量
             }
             else if (btn.Name == "btnGW")
             {
@@ -157,12 +166,16 @@ namespace AES
 
                 txtZH.Text = "5203211101";
                 txtPwd.Text = "1234ASDF";
-                txtRootPath.Text = "http://localhost:5000";
-                txtUrl.Text = "/api/JKTJB/Postjktjb";
+                txtUrl.Text = lastGwUrl;
+                txtMW.Text = lastGwMW;
+                lastGwUrl = txtUrl.Text;
+                lastGwMW = txtMW.Text;
 
-                txtMY.Text = "C0D2ACC1205B4028A4888CAC475FBE35";
-                txtPYL.Text = "";
+                txtMY.Text = "C0D2ACC1205B4028A4888CAC475FBE35";    //密匙
+                txtPYL.Text = "";   // 偏移量
             }
+
+            ReCalcCount();
 
         }
         #endregion
@@ -226,34 +239,61 @@ namespace AES
                     //    return;
                     //}
 
-                    string? url = txtRootPath.Text + txtUrl.Text;
+                    string? url = txtRootPath.Text + (txtUrl.Text.StartsWith('/') ? txtUrl.Text.Trim() : "/" + txtUrl.Text);
                     string? token = txtToken.Text;
 
                     using var context = new SqliteContext();
 
                     info = await ApiHelper.HttpApi(url, json, token, isCS: !chkParam.Checked);
-                    var item = txtRootPath.Text + "||" + txtUrl.Text + "||" + txtMW.Text;
-                    if (!listBox1.Items.Contains(item))
+                    var fullUrlParam = txtRootPath.Text + "||" + txtUrl.Text + "||" + txtMW.Text;
+                    if (!listBox1.Items.Contains(fullUrlParam))
                     {
                         //历史记录
-                        listBox1.Items.Add(item);
+                        listBox1.Items.Add(fullUrlParam);
                     }
 
-                    if (info != null && info.code > 0)
+                    if (info != null)
                     {
                         txtMingW.Text = formatJson(info.ToJson());
                     }
-
-
                 }
                 else if (type == 2)     //公卫
                 {
                     string json = txtMW.Text;
+                    var jsonstr = CHISAES.AESDEncrypt(json);
+                    if (btn != null && btn.Text == "明文请求")
+                    {
+                        jsonstr = txtMingW.Text.Trim();
+                    }
+                    BeRequest requests = jsonstr.ToObject<BeRequest>();
+                    if (requests.Objects != null && requests.Objects.Count > 0)
+                    {
+                        var oejcts = requests.Objects;
+                        requests.Objects = new Hashtable();
+                        foreach (DictionaryEntry item in oejcts)
+                        {
+                            var key = item.Key.ToString();
+                            var value = item.Value.ToString();
+                            requests.Objects.Add(key, value);
+                        }
+                    }
+                    requests.GH = requests.GH ?? "5203211101";
+                    requests.MM = requests.MM ?? "1234ASDF";
+                    requests.JGBM = requests.JGBM ?? "10000111001";
+
+                    json = CHISAES.AESEncrypt(requests.ToJson());
                     string? url = txtRootPath.Text + txtUrl.Text;
                     string? token = txtToken.Text;
 
                     info = await ApiHelper.HttpApi(url, json, token, 2, isCS: !chkParam.Checked);
-                    if (info != null && info.code > 0)
+                    var fullUrlParam = txtRootPath.Text + "||" + txtUrl.Text + "||" + txtMW.Text;
+                    if (!listBox1.Items.Contains(fullUrlParam))
+                    {
+                        //历史记录
+                        listBox1.Items.Add(fullUrlParam);
+                    }
+
+                    if (info != null)
                     {
                         txtMingW.Text = formatJson(info.ToJson());
                     }
@@ -276,36 +316,20 @@ namespace AES
         {
             if (!string.IsNullOrWhiteSpace(info.data))
             {
-                string decyptData = FilterAES.FileterDecrypt(info.data);
+                string decyptData = string.Empty;
+                if (type == 1)
+                {
+                    decyptData = FilterAES.FileterDecrypt(info.data);
+                }
+                else if (type == 2)
+                {
+                    decyptData = CHISAES.DecompressString(info.data);
+                }
                 txtMingW.Text = formatJson(decyptData);
             }
         }
         #endregion
 
-        #region 切换环境 本地/测试/正式环境
-        /// <summary>
-        /// 切换环境
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void button3_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                currentIndex += 1;
-                if (currentIndex + 1 > addressCount)
-                {
-                    currentIndex = 0;
-                }
-                txtRootPath.Text = config.Addresses[currentIndex];
-                lblStatus.Text = $"当前地址 ({currentIndex + 1}/{addressCount})";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-        #endregion
 
         #region 内部方法
 
@@ -325,8 +349,42 @@ namespace AES
         public string formatJson(string jsonText)
         {
             var jsonObject = JToken.Parse(jsonText);
-            string formattedJson = jsonObject.ToString((Newtonsoft.Json.Formatting)Formatting.Indented);
+            string formattedJson = jsonObject.ToString((Newtonsoft.Json.Formatting)System.Xml.Formatting.Indented);
             return formattedJson;
+        }
+        #endregion
+
+        #region 切换公卫/慢病 重算数量
+        public void ReCalcCount()
+        {
+            if (chkWeb.Checked)
+            {
+                if (type == 1)
+                {
+                    txtRootPath.Text = config.WebAddress[0];
+                    addressCount = config.WebAddress.Count;
+                }
+                else if (type == 2)
+                {
+                    txtRootPath.Text = config.ChisWebAddress[0];
+                    addressCount = config.ChisWebAddress.Count;
+                }
+            }
+            else
+            {
+                if (type == 1)
+                {
+                    txtRootPath.Text = config.Addresses[0];
+                    addressCount = config.Addresses.Count;
+                }
+                else if (type == 2)
+                {
+                    txtRootPath.Text = config.ChisAddress[0];
+                    addressCount = config.ChisAddress.Count;
+                }
+            }
+
+            lblStatus.Text = $"当前地址 ({1}/{addressCount})";
         }
         #endregion
 
@@ -369,22 +427,54 @@ namespace AES
         /// </summary>
         private void chkWeb_CheckedChanged(object sender, EventArgs e)
         {
-            var chk = (sender as CheckBox)?.Checked;
-            if (chk.Value)
-            {
-                // 加载配置
-                config = AppConfig.LoadWebConfig();
-            }
-            else
-            {
-                // 加载配置
-                config = AppConfig.LoadConfig();
-            }
+            ReCalcCount();
+        }
+        #endregion
 
-            addressCount = config.Addresses.Count;
+        #region 切换环境 本地/测试/正式环境
+        /// <summary>
+        /// 切换环境
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button3_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                currentIndex += 1;
+                if (currentIndex + 1 > addressCount)
+                {
+                    currentIndex = 0;
+                }
 
-            txtRootPath.Text = config.Addresses[0];
-            lblStatus.Text = $"当前地址 ({1}/{addressCount})";
+                if (chkWeb.Checked)
+                {
+                    if (type == 1)
+                    {
+                        txtRootPath.Text = config.WebAddress[currentIndex];
+                    }
+                    else if (type == 2)
+                    {
+                        txtRootPath.Text = config.ChisWebAddress[currentIndex];
+                    }
+                }
+                else
+                {
+                    if (type == 1)
+                    {
+                        txtRootPath.Text = config.Addresses[currentIndex];
+                    }
+                    else if (type == 2)
+                    {
+                        txtRootPath.Text = config.ChisAddress[currentIndex];
+                    }
+                }
+                lblStatus.Text = $"当前地址 ({currentIndex + 1}/{addressCount})";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
         #endregion
 
@@ -428,7 +518,18 @@ namespace AES
 
         private void listBox1_DoubleClick(object sender, EventArgs e)
         {
-            // 移除当前选中的项
+            // 使用 BeginInvoke 延迟执行，避免事件冲突
+            this.BeginInvoke(new Action(() =>
+            {
+                if (listBox1.SelectedItem != null)
+                {
+                    listBox1.Items.Remove(listBox1.SelectedItem);
+                }
+            }));
+        }
+
+        private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
             if (listBox1.SelectedItem != null)
             {
                 listBox1.Items.Remove(listBox1.SelectedItem);
