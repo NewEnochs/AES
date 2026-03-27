@@ -67,6 +67,7 @@ namespace AES
             button6 = new Button();
             listBox1 = new ListBox();
             button7 = new Button();
+            btnSMS = new Button();
             SuspendLayout();
             // 
             // label1
@@ -200,14 +201,14 @@ namespace AES
             // 
             // txtZH
             // 
-            txtZH.Location = new Point(239, 13);
+            txtZH.Location = new Point(323, 13);
             txtZH.Name = "txtZH";
             txtZH.Size = new Size(155, 23);
             txtZH.TabIndex = 4;
             // 
             // txtPwd
             // 
-            txtPwd.Location = new Point(451, 14);
+            txtPwd.Location = new Point(535, 14);
             txtPwd.Name = "txtPwd";
             txtPwd.Size = new Size(178, 23);
             txtPwd.TabIndex = 4;
@@ -215,7 +216,7 @@ namespace AES
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(204, 17);
+            label6.Location = new Point(288, 17);
             label6.Name = "label6";
             label6.Size = new Size(32, 17);
             label6.TabIndex = 0;
@@ -224,7 +225,7 @@ namespace AES
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(416, 16);
+            label7.Location = new Point(500, 16);
             label7.Name = "label7";
             label7.Size = new Size(32, 17);
             label7.TabIndex = 0;
@@ -232,7 +233,7 @@ namespace AES
             // 
             // button1
             // 
-            button1.Location = new Point(648, 12);
+            button1.Location = new Point(732, 12);
             button1.Name = "button1";
             button1.Size = new Size(94, 23);
             button1.TabIndex = 2;
@@ -403,6 +404,16 @@ namespace AES
             button7.UseVisualStyleBackColor = true;
             button7.Click += button7_Click;
             // 
+            // btnSMS
+            // 
+            btnSMS.Location = new Point(187, 14);
+            btnSMS.Name = "btnSMS";
+            btnSMS.Size = new Size(75, 37);
+            btnSMS.TabIndex = 2;
+            btnSMS.Text = "短信平台";
+            btnSMS.UseVisualStyleBackColor = true;
+            btnSMS.Click += btnGW_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
@@ -425,6 +436,7 @@ namespace AES
             Controls.Add(btnRequest);
             Controls.Add(button6);
             Controls.Add(btnJiemi);
+            Controls.Add(btnSMS);
             Controls.Add(btnGW);
             Controls.Add(button5);
             Controls.Add(btnMB);
@@ -490,5 +502,6 @@ namespace AES
         private Button button6;
         private ListBox listBox1;
         private Button button7;
+        private Button btnSMS;
     }
 }

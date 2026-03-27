@@ -2,11 +2,13 @@ using AES.DataBase;
 using AES.Helper;
 using AES.Model;
 using AES.Util;
+using NetTaste;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Policy;
 using System.Xml;
 
 namespace AES
@@ -132,6 +134,7 @@ namespace AES
             btnMB.BackColor = Color.FromArgb(134, 124, 228);
             SetButtonStyle(btnMB);
             SetButtonStyle(btnGW);
+            SetButtonStyle(btnSMS);
         }
         #endregion
 
@@ -147,6 +150,7 @@ namespace AES
                 type = 1;
                 btnMB.BackColor = Color.FromArgb(134, 124, 228);
                 btnGW.BackColor = SystemColors.Window;
+                btnSMS.BackColor = SystemColors.Window;
 
                 txtZH.Text = "superAdmin";
                 txtPwd.Text = "Estoom@?203";
@@ -163,6 +167,7 @@ namespace AES
                 type = 2;
                 btnMB.BackColor = SystemColors.Window;
                 btnGW.BackColor = Color.FromArgb(134, 124, 228);
+                btnSMS.BackColor = SystemColors.Window;
 
                 txtZH.Text = "5203211101";
                 txtPwd.Text = "1234ASDF";
@@ -173,6 +178,19 @@ namespace AES
 
                 txtMY.Text = "C0D2ACC1205B4028A4888CAC475FBE35";    //密匙
                 txtPYL.Text = "";   // 偏移量
+            }
+            else if (btn.Name == "btnSMS")
+            {
+                type = 3;
+                btnMB.BackColor = SystemColors.Window;
+                btnGW.BackColor = SystemColors.Window;
+                btnSMS.BackColor = Color.FromArgb(134, 124, 228);
+
+                txtMW.Text = "{\r\n  \"BODY\": {\r\n    \"HM\": \"13637748963\",\r\n    \"DXNR\": \"【医事通】验证码：992041 。该验证码仅用于身份验证，请勿泄露给他人使用。\",\r\n    \"JGBM\": \"52000\",\r\n    \"GH\": \"001\"\r\n  },\r\n  \"ZH\": \"qdndzxwsjkjhdsc\",\r\n  \"MM\": \"co55EZ#HVuv64\"\r\n}";
+
+                txtRootPath.Text = "http://36.111.166.130:40024";
+                txtUrl.Text = "/SendSMS/do";
+
             }
 
             ReCalcCount();
@@ -260,28 +278,28 @@ namespace AES
                 else if (type == 2)     //公卫
                 {
                     string json = txtMW.Text;
-                    var jsonstr = CHISAES.AESDEncrypt(json);
-                    if (btn != null && btn.Text == "明文请求")
-                    {
-                        jsonstr = txtMingW.Text.Trim();
-                    }
-                    BeRequest requests = jsonstr.ToObject<BeRequest>();
-                    if (requests.Objects != null && requests.Objects.Count > 0)
-                    {
-                        var oejcts = requests.Objects;
-                        requests.Objects = new Hashtable();
-                        foreach (DictionaryEntry item in oejcts)
-                        {
-                            var key = item.Key.ToString();
-                            var value = item.Value.ToString();
-                            requests.Objects.Add(key, value);
-                        }
-                    }
-                    requests.GH = requests.GH ?? "5203211101";
-                    requests.MM = requests.MM ?? "1234ASDF";
-                    requests.JGBM = requests.JGBM ?? "10000111001";
+                    //var jsonstr = CHISAES.AESDEncrypt(json);
+                    //if (btn != null && btn.Text == "明文请求")
+                    //{
+                    //    jsonstr = txtMingW.Text.Trim();
+                    //}
+                    //BeRequest requests = jsonstr.ToObject<BeRequest>();
+                    //if (requests.Objects != null && requests.Objects.Count > 0)
+                    //{
+                    //    var oejcts = requests.Objects;
+                    //    requests.Objects = new Hashtable();
+                    //    foreach (DictionaryEntry item in oejcts)
+                    //    {
+                    //        var key = item.Key.ToString();
+                    //        var value = item.Value.ToString();
+                    //        requests.Objects.Add(key, value);
+                    //    }
+                    //}
+                    //requests.GH = requests.GH ?? "5203211101";
+                    //requests.MM = requests.MM ?? "1234ASDF";
+                    //requests.JGBM = requests.JGBM ?? "10000111001";
 
-                    json = CHISAES.AESEncrypt(requests.ToJson());
+                    //json = CHISAES.AESEncrypt(requests.ToJson());
                     string? url = txtRootPath.Text + txtUrl.Text;
                     string? token = txtToken.Text;
 
@@ -298,7 +316,25 @@ namespace AES
                         txtMingW.Text = formatJson(info.ToJson());
                     }
                 }
+                else if (type == 3) //短信平台
+                {
+                    var json = txtMW.Text;
 
+                    string? url = txtRootPath.Text + (txtUrl.Text.StartsWith('/') ? txtUrl.Text.Trim() : "/" + txtUrl.Text);
+
+                    SmsResult info = ApiHelper.WebRequests(url, json);
+                    var fullUrlParam = txtRootPath.Text + "||" + txtUrl.Text + "||" + txtMW.Text;
+                    if (!listBox1.Items.Contains(fullUrlParam))
+                    {
+                        //历史记录
+                        listBox1.Items.Add(fullUrlParam);
+                    }
+
+                    if (info != null)
+                    {
+                        txtMingW.Text = formatJson(info.ToJson());
+                    }
+                }
 
             }
             catch (Exception ex)
@@ -369,6 +405,11 @@ namespace AES
                     txtRootPath.Text = config.ChisWebAddress[0];
                     addressCount = config.ChisWebAddress.Count;
                 }
+                else if (type == 3)
+                {
+                    txtRootPath.Text = config.SMSWebAddress[0];
+                    addressCount = config.SMSWebAddress.Count;
+                }
             }
             else
             {
@@ -381,6 +422,11 @@ namespace AES
                 {
                     txtRootPath.Text = config.ChisAddress[0];
                     addressCount = config.ChisAddress.Count;
+                }
+                else if (type == 3)
+                {
+                    txtRootPath.Text = config.SMSAddress[0];
+                    addressCount = config.SMSAddress.Count;
                 }
             }
 
@@ -457,6 +503,10 @@ namespace AES
                     {
                         txtRootPath.Text = config.ChisWebAddress[currentIndex];
                     }
+                    else if (type == 3)
+                    {
+                        txtRootPath.Text = config.SMSWebAddress[currentIndex];
+                    }
                 }
                 else
                 {
@@ -467,6 +517,10 @@ namespace AES
                     else if (type == 2)
                     {
                         txtRootPath.Text = config.ChisAddress[currentIndex];
+                    }
+                    else if (type == 3)
+                    {
+                        txtRootPath.Text = config.SMSAddress[currentIndex];
                     }
                 }
                 lblStatus.Text = $"当前地址 ({currentIndex + 1}/{addressCount})";
@@ -528,12 +582,5 @@ namespace AES
             }));
         }
 
-        private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            if (listBox1.SelectedItem != null)
-            {
-                listBox1.Items.Remove(listBox1.SelectedItem);
-            }
-        }
     }
 }

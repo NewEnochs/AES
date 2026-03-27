@@ -1,6 +1,8 @@
 ﻿using AES;
 using AES.Helper;
+using AES.Model;
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -18,7 +20,7 @@ namespace AES
 
 
         /// <summary>
-        /// 
+        /// 公卫请求
         /// </summary>
         /// <param name="url"></param>
         /// <param name="jsonstr">加密的参数/有的方法 白名单 明文请求不需要加密</param>
@@ -85,7 +87,15 @@ namespace AES
         }
 
 
-
+        /// <summary>
+        /// 慢病平台请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="jsonstr"></param>
+        /// <param name="ymdz"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public static async Task<MessageInfo> HttpApi(string url, string jsonstr = "", int ymdz = 0, string type = "POST")
         {
             string requestUrl = url;
@@ -116,6 +126,36 @@ namespace AES
             {
                 // 这里可以根据需要处理异常
                 throw new Exception($"HTTP请求失败: {ex.Message}", ex);
+            }
+        }
+
+
+        public static SmsResult WebRequests(string url, string postModel = "", string type = "POST")
+        {
+            Encoding encoding = Encoding.UTF8;
+
+            HttpWebRequest request = (HttpWebRequest)System.Net.WebRequest.Create(url);//webrequest请求api地址  
+            request.Timeout = 180000;
+            request.Accept = "application/json, text/plain, */*";
+            request.ContentType = "application/json; charset=utf-8";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36";
+            request.Method = type.ToUpper().ToString();//get或者post
+            request.Headers.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiLllrvmnKzlhYgiLCJqdGkiOiI2MmE2NTg1NC00NmYyLTRlOTYtYmJiMS0zMTc0YTIzMTYxY2MiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6WyIxMDAwMDEiLCIxMDAwMDExMTAwMSJdLCJuYmYiOjE3Njk1ODAzNjksImV4cCI6MTc2OTY2Njc2OSwiaXNzIjoiZXN0IiwiYXVkIjoiY2hpc3VpIn0.Wn1B9GQVR6qetpZO5G_lUrjlJsxkIsG7pgunrH5nl0M");
+
+            if (type.ToUpper() == "POST")
+            {
+                byte[] buffer = encoding.GetBytes(postModel);
+                request.ContentType = "application/json";
+                request.ContentLength = buffer.Length;
+                request.GetRequestStream().Write(buffer, 0, buffer.Length);
+            }
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            using (StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
+            {
+                var retM = reader.ReadToEnd();
+
+                SmsResult messageinfo = retM.DeserializeObject<SmsResult>();
+                return messageinfo;
             }
         }
 

@@ -13,6 +13,8 @@ namespace AES.Util
         public List<string> WebAddress { get; set; } = new List<string>();
         public List<string> ChisAddress { get; set; } = new List<string>();
         public List<string> ChisWebAddress { get; set; } = new List<string>();
+        public List<string> SMSAddress { get; set; } = new List<string>();
+        public List<string> SMSWebAddress { get; set; } = new List<string>();
         public int DefaultIndex { get; set; }
         public string DefaultConnection { get; set; } = string.Empty;
 
