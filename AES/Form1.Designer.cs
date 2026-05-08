@@ -68,6 +68,8 @@ namespace AES
             listBox1 = new ListBox();
             button7 = new Button();
             btnSMS = new Button();
+            label9 = new Label();
+            button8 = new Button();
             SuspendLayout();
             // 
             // label1
@@ -90,7 +92,7 @@ namespace AES
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(18, 288);
+            label2.Location = new Point(18, 259);
             label2.Name = "label2";
             label2.Size = new Size(64, 17);
             label2.TabIndex = 0;
@@ -98,18 +100,18 @@ namespace AES
             // 
             // txtMW
             // 
-            txtMW.Location = new Point(85, 285);
+            txtMW.Location = new Point(85, 256);
             txtMW.Multiline = true;
             txtMW.Name = "txtMW";
             txtMW.ScrollBars = ScrollBars.Vertical;
-            txtMW.Size = new Size(905, 210);
+            txtMW.Size = new Size(905, 257);
             txtMW.TabIndex = 1;
             txtMW.Text = "begp++A6RxZY/R5h31KNZHcY43C1DKDz7j4JQll7xv2s9ezAc8+9LSDk2nimdJg7OFR1fyTSsS6zs0UFeYr3w4yGsJGS336uwS/uYzgzrkA=";
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(18, 515);
+            label3.Location = new Point(18, 528);
             label3.Name = "label3";
             label3.Size = new Size(64, 17);
             label3.TabIndex = 0;
@@ -256,7 +258,7 @@ namespace AES
             txtToken.Multiline = true;
             txtToken.Name = "txtToken";
             txtToken.ScrollBars = ScrollBars.Vertical;
-            txtToken.Size = new Size(905, 120);
+            txtToken.Size = new Size(905, 79);
             txtToken.TabIndex = 1;
             // 
             // txtRootPath
@@ -268,7 +270,7 @@ namespace AES
             // 
             // button2
             // 
-            button2.Location = new Point(243, 747);
+            button2.Location = new Point(243, 905);
             button2.Name = "button2";
             button2.Size = new Size(128, 23);
             button2.TabIndex = 3;
@@ -306,7 +308,7 @@ namespace AES
             // 
             // bntFormat
             // 
-            bntFormat.Location = new Point(377, 747);
+            bntFormat.Location = new Point(377, 905);
             bntFormat.Name = "bntFormat";
             bntFormat.Size = new Size(128, 23);
             bntFormat.TabIndex = 3;
@@ -316,7 +318,7 @@ namespace AES
             // 
             // btnEmptyResult
             // 
-            btnEmptyResult.Location = new Point(511, 747);
+            btnEmptyResult.Location = new Point(511, 905);
             btnEmptyResult.Name = "btnEmptyResult";
             btnEmptyResult.Size = new Size(128, 23);
             btnEmptyResult.TabIndex = 3;
@@ -326,7 +328,7 @@ namespace AES
             // 
             // btnEmptyAll
             // 
-            btnEmptyAll.Location = new Point(645, 747);
+            btnEmptyAll.Location = new Point(645, 905);
             btnEmptyAll.Name = "btnEmptyAll";
             btnEmptyAll.Size = new Size(128, 23);
             btnEmptyAll.TabIndex = 3;
@@ -336,10 +338,10 @@ namespace AES
             // 
             // txtMingW
             // 
-            txtMingW.Location = new Point(87, 515);
+            txtMingW.Location = new Point(87, 528);
             txtMingW.Name = "txtMingW";
             txtMingW.ScrollBars = RichTextBoxScrollBars.Vertical;
-            txtMingW.Size = new Size(895, 220);
+            txtMingW.Size = new Size(895, 362);
             txtMingW.TabIndex = 5;
             txtMingW.Text = "";
             // 
@@ -366,7 +368,7 @@ namespace AES
             // 
             // button5
             // 
-            button5.Location = new Point(81, 747);
+            button5.Location = new Point(81, 905);
             button5.Name = "button5";
             button5.Size = new Size(75, 23);
             button5.TabIndex = 2;
@@ -376,7 +378,7 @@ namespace AES
             // 
             // button6
             // 
-            button6.Location = new Point(162, 747);
+            button6.Location = new Point(162, 905);
             button6.Name = "button6";
             button6.Size = new Size(75, 23);
             button6.TabIndex = 2;
@@ -387,7 +389,7 @@ namespace AES
             // listBox1
             // 
             listBox1.FormattingEnabled = true;
-            listBox1.Location = new Point(996, 163);
+            listBox1.Location = new Point(996, 195);
             listBox1.Name = "listBox1";
             listBox1.Size = new Size(348, 650);
             listBox1.TabIndex = 7;
@@ -414,11 +416,32 @@ namespace AES
             btnSMS.UseVisualStyleBackColor = true;
             btnSMS.Click += btnGW_Click;
             // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(996, 169);
+            label9.Name = "label9";
+            label9.Size = new Size(56, 17);
+            label9.TabIndex = 8;
+            label9.Text = "请求记录";
+            // 
+            // button8
+            // 
+            button8.Location = new Point(1114, 128);
+            button8.Name = "button8";
+            button8.Size = new Size(113, 23);
+            button8.TabIndex = 3;
+            button8.Text = "清空重建数据库";
+            button8.UseVisualStyleBackColor = true;
+            button8.Click += button8_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1356, 832);
+            AutoScroll = true;
+            ClientSize = new Size(1427, 950);
+            Controls.Add(label9);
             Controls.Add(listBox1);
             Controls.Add(chkWeb);
             Controls.Add(chkParam);
@@ -430,6 +453,7 @@ namespace AES
             Controls.Add(btnEmptyResult);
             Controls.Add(bntFormat);
             Controls.Add(button2);
+            Controls.Add(button8);
             Controls.Add(button7);
             Controls.Add(button3);
             Controls.Add(button4);
@@ -503,5 +527,7 @@ namespace AES
         private ListBox listBox1;
         private Button button7;
         private Button btnSMS;
+        private Label label9;
+        private Button button8;
     }
 }

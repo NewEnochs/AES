@@ -1,7 +1,7 @@
 ﻿using System;
 using SqlSugar;
 
-namespace AES.Model
+namespace API.DBEntity.Model
 {
     /// <summary>
     /// 

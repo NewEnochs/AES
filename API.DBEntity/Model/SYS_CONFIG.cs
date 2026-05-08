@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AES.Model
+namespace API.DBEntity.Model
 {
     /// <summary>
     /// 参数配置表

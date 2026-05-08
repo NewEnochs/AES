@@ -1,11 +1,12 @@
-﻿using SqlSugar;
+﻿using AES.Util;
+using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AES.Model
+namespace API.DBEntity.Model
 {
 
     public class SqliteContext : IDisposable
@@ -15,28 +16,29 @@ namespace AES.Model
         public SqliteContext()
         {
             // 1. 数据库文件路径：程序启动目录下的 DBApi.db
-            string dbPath = Path.Combine(Application.StartupPath, "DBApi.db");
+            string dbPath = DataPathHelper.GetDbPath();
             string connectionString = $"Data Source={dbPath};";
-
-            var config = new ConnectionConfig()
+            Db = new SqlSugarClient(new ConnectionConfig()
             {
                 ConnectionString = connectionString,
                 DbType = DbType.Sqlite,
-                IsAutoCloseConnection = true, // 自动关闭连接，避免连接泄漏
-                InitKeyType = InitKeyType.Attribute // 从实体特性读取主键/自增等
-            };
+                InitKeyType = InitKeyType.Attribute,//从特性读取主键和自增列信息
+                IsAutoCloseConnection = true,//开启自动释放模式和EF原理一样我就不多解释了
+            });
 
-            Db = new SqlSugarClient(config);
+            Db.Ado.CommandTimeOut = 180;
 
-            // 全局 SQL 执行错误事件（更通用的异常捕获）
             Db.Aop.OnLogExecuted = (sql, pars) =>
             {
                 // 可选：记录执行开始（一般不需要）
+                Logger.Write($"SQL语句：【{sql}】", "History_SQL");
             };
             Db.Aop.OnLogExecuting = (sql, pars) =>
             {
+               
                 // OnLogExecuted 已通过 ConfigureExternalServices.LogExecuted 处理
             };
+            // 全局 SQL 执行错误事件（更通用的异常捕获）
             Db.Aop.OnError = (exp) =>
             {
                 string fullSql = LogHelper.GetFullSql(exp.Sql, (SugarParameter[])exp.Parametres);

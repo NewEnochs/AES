@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AES.Model
+namespace API.DBEntity.Model
 {
     /// <summary>
     /// 自定义实体基类

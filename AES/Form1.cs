@@ -2,13 +2,17 @@ using AES.DataBase;
 using AES.Helper;
 using AES.Model;
 using AES.Util;
+using API.DBEntity.Model;
 using NetTaste;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SqlSugar.Extensions;
 using System;
 using System.Collections;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Policy;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
 using System.Xml;
 
 namespace AES
@@ -28,6 +32,7 @@ namespace AES
         private string lastMBMW = "begp++A6RxZY/R5h31KNZHcY43C1DKDz7j4JQll7xv2s9ezAc8+9LSDk2nimdJg7OFR1fyTSsS6zs0UFeYr3w4yGsJGS336uwS/uYzgzrkA=";
         private string lastGwMW = "ZZs63zQI5L0DlzA3t7/7NZK9o8q160ajdAxEJnkxYVrQY4p/xKk/3BSrOFI1Avb+PPmiEQBBw3uk9/dmrHM/1CfX6AqASd0Z+NYsdTHiegEIRhUoJia+PlvyUlilRcIxxQT+YwWwp8jLEnYbMakZdpR8ypDhk7xyUOOawTt0QPLr+0fBf4w4K+WlSBC7ujY5PNXGi0aq4ga9RM5RONXALtjM8gzZi5z29pXspcoDLaPhr3oh4U3Uv4QXykpQo+LPW4EuW0j2GhZuJtZP9p2fxiC9Z2ZXDDzruPtawn/f8yEbC00b4nL916Wr90IJ66dqXBSUJ8vh3Ta8rAYyuUnlQZoMsL1jIghqRHfZpgn0jlgQDp8K/CRCNrajOop7vdN3wROaRJaNghRQEgA0GZRvec246I1y19NgoVFwBFoVkYzAPaLPRBY6Zf/ozF+UgR8U1lrwPaXXQxOpRR2smLY25d5og8a1uAk8sXWHzwW+s94=";
 
+        private string gwToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiLllrvmnKzlhYgiLCJqdGkiOiI2MmE2NTg1NC00NmYyLTRlOTYtYmJiMS0zMTc0YTIzMTYxY2MiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6WyIxMDAwMDEiLCIxMDAwMDExMTAwMSJdLCJuYmYiOjE3Njk1ODAzNjksImV4cCI6MTc2OTY2Njc2OSwiaXNzIjoiZXN0IiwiYXVkIjoiY2hpc3VpIn0.Wn1B9GQVR6qetpZO5G_lUrjlJsxkIsG7pgunrH5nl0M";
         public Form1()
         {
             InitializeComponent();
@@ -39,6 +44,8 @@ namespace AES
             txtZH.Text = "superAdmin";
             txtPwd.Text = "Estoom@?2023";
             button1_Click(null, null);
+
+            BindHistory();
         }
         #endregion
 
@@ -114,11 +121,14 @@ namespace AES
                         txtMingW.Text = mingw;
                     }
                 }
+
+                HZColor();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "提示");
             }
+
         }
         #endregion
 
@@ -204,7 +214,7 @@ namespace AES
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object? sender, EventArgs? e)
         {
             if (type == 1)
             {
@@ -224,6 +234,7 @@ namespace AES
         /// </summary>
         private async void btnRequest_Click(object sender, EventArgs e)
         {
+            ApiHistory history = new ApiHistory();
             try
             {
                 var btn = (sender as Button);
@@ -251,84 +262,43 @@ namespace AES
                         }
                     }
 
-                    //if (string.IsNullOrEmpty(json))
-                    //{
-                    //    MessageBox.Show("请输入参数");
-                    //    return;
-                    //}
-
                     string? url = txtRootPath.Text + (txtUrl.Text.StartsWith('/') ? txtUrl.Text.Trim() : "/" + txtUrl.Text);
                     string? token = txtToken.Text;
 
-                    using var context = new SqliteContext();
-
+                    history = InsertHistory();
+                    history.Token = token;
                     info = await ApiHelper.HttpApi(url, json, token, isCS: !chkParam.Checked);
-                    var fullUrlParam = txtRootPath.Text + "||" + txtUrl.Text + "||" + txtMW.Text;
-                    if (!listBox1.Items.Contains(fullUrlParam))
-                    {
-                        //历史记录
-                        listBox1.Items.Add(fullUrlParam);
-                    }
 
                     if (info != null)
                     {
                         txtMingW.Text = formatJson(info.ToJson());
+                        history.ResponseBody = txtMingW.Text;
+                        history.StatusCode = info.code;
                     }
                 }
                 else if (type == 2)     //公卫
                 {
                     string json = txtMW.Text;
-                    //var jsonstr = CHISAES.AESDEncrypt(json);
-                    //if (btn != null && btn.Text == "明文请求")
-                    //{
-                    //    jsonstr = txtMingW.Text.Trim();
-                    //}
-                    //BeRequest requests = jsonstr.ToObject<BeRequest>();
-                    //if (requests.Objects != null && requests.Objects.Count > 0)
-                    //{
-                    //    var oejcts = requests.Objects;
-                    //    requests.Objects = new Hashtable();
-                    //    foreach (DictionaryEntry item in oejcts)
-                    //    {
-                    //        var key = item.Key.ToString();
-                    //        var value = item.Value.ToString();
-                    //        requests.Objects.Add(key, value);
-                    //    }
-                    //}
-                    //requests.GH = requests.GH ?? "5203211101";
-                    //requests.MM = requests.MM ?? "1234ASDF";
-                    //requests.JGBM = requests.JGBM ?? "10000111001";
-
-                    //json = CHISAES.AESEncrypt(requests.ToJson());
                     string? url = txtRootPath.Text + txtUrl.Text;
+                    txtToken.Text = gwToken;
                     string? token = txtToken.Text;
 
+                    history = InsertHistory();
                     info = await ApiHelper.HttpApi(url, json, token, 2, isCS: !chkParam.Checked);
-                    var fullUrlParam = txtRootPath.Text + "||" + txtUrl.Text + "||" + txtMW.Text;
-                    if (!listBox1.Items.Contains(fullUrlParam))
-                    {
-                        //历史记录
-                        listBox1.Items.Add(fullUrlParam);
-                    }
 
                     if (info != null)
                     {
                         txtMingW.Text = formatJson(info.ToJson());
+                        history.ResponseBody = txtMingW.Text;
                     }
                 }
                 else if (type == 3) //短信平台
                 {
                     var json = txtMW.Text;
-
                     string? url = txtRootPath.Text + (txtUrl.Text.StartsWith('/') ? txtUrl.Text.Trim() : "/" + txtUrl.Text);
 
+                    history = InsertHistory();
                     SmsResult info = ApiHelper.WebRequests(url, json);
-                    var fullUrlParam = txtRootPath.Text + "||" + txtUrl.Text + "||" + txtMW.Text;
-                    if (!listBox1.Items.Contains(fullUrlParam))
-                    {
-                        //历史记录
-                        listBox1.Items.Add(fullUrlParam);
-                    }
 
                     if (info != null)
                     {
@@ -336,13 +306,24 @@ namespace AES
                     }
                 }
 
+                HZColor();
             }
             catch (Exception ex)
             {
                 txtMingW.Text = ex.Message;
+                history.StatusCode = 0;
+                history.ResponseBody = txtMingW.Text;
+            }
+            finally
+            {
+                var entity = new SqliteContext().Db.Insertable(history).ExecuteReturnEntity();
+
+                BindHistory(entity);
             }
         }
         #endregion
+
+
 
         #region 提取内部加密数据  解密
         /// <summary>
@@ -363,9 +344,10 @@ namespace AES
                 }
                 txtMingW.Text = formatJson(decyptData);
             }
+
+            HZColor();
         }
         #endregion
-
 
         #region 内部方法
 
@@ -440,9 +422,10 @@ namespace AES
         /// <summary>
         /// 结果格式化
         /// </summary>
-        private void bntFormat_Click(object sender, EventArgs e)
+        private void bntFormat_Click(object? sender, EventArgs? e)
         {
             txtMingW.Text = formatJson(txtMingW.Text);
+            HZColor();
         }
         #endregion
 
@@ -524,6 +507,8 @@ namespace AES
                     }
                 }
                 lblStatus.Text = $"当前地址 ({currentIndex + 1}/{addressCount})";
+
+                HZColor();
             }
             catch (Exception ex)
             {
@@ -543,11 +528,17 @@ namespace AES
             try
             {
                 var box = (sender as ListBox);
-                var item = box.SelectedItems[0];
-                string[] listArr = item?.ToString().Split("||");
-                txtRootPath.Text = listArr[0];
-                txtUrl.Text = listArr[1];
-                txtMW.Text = listArr[2];
+                var item = box == null ? null : box.SelectedItems[0];
+                if (item != null)
+                {
+                    string[]? listArr = item.ToString().Split("||");
+                    txtRootPath.Text = listArr[0];
+                    txtUrl.Text = listArr[1];
+                    txtMW.Text = listArr[2];
+
+                    txtMingW.Text = FilterAES.FileterDecrypt(txtMW.Text);
+                    bntFormat_Click(null, null);
+                }
             }
             catch (Exception ex)
             {
@@ -570,17 +561,132 @@ namespace AES
         }
         #endregion
 
+        #region 清空重建
+        /// <summary>
+        /// 清空重建数据库
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button8_Click(object sender, EventArgs e)
+        {
+            CreateDataBase.RecreateDatabase();
+        }
+        #endregion
+
+        #region 插入记录
+
+        public ApiHistory InsertHistory()
+        {
+            // 插入一条记录
+            var history = new ApiHistory
+            {
+                RequestRootPath = txtRootPath.Text,
+                RequestUrl = txtUrl.Text,
+                RequestMethod = "POST",
+                RequestBody = txtMW.Text,
+                ResponseBody = "",
+                CreatedTime = DateTime.Now,
+                Token = txtToken.Text,
+
+            };
+            return history;
+        }
+
+        #endregion
+
+        #region 查询历史记录  绑定
+
+        public void BindHistory(ApiHistory? history = null)
+        {
+            if (history != null)
+            {
+                var fullUrlParam = history.RequestRootPath + "||" + history.RequestUrl + "||" + history.RequestBody + "||" + history.Id;
+                if (!listBox1.Items.Contains(fullUrlParam))
+                {
+                    //历史记录
+                    listBox1.Items.Insert(0, fullUrlParam);
+                }
+                return;
+            }
+
+            using var context = new SqliteContext();
+
+            listBox1.Items.Clear();
+            var list = context.Db.Queryable<ApiHistory>().OrderByDescending(r => r.CreatedTime).Take(50).ToList();
+            foreach (var item in list)
+            {
+                var fullUrlParam = item.RequestRootPath + "||" + item.RequestUrl + "||" + item.RequestBody + "||" + item.Id;
+                if (!listBox1.Items.Contains(fullUrlParam))
+                {
+                    //历史记录
+                    listBox1.Items.Add(fullUrlParam);
+                }
+            }
+
+        }
+
+        #endregion
+
+        #region 其他方法
+
         private void listBox1_DoubleClick(object sender, EventArgs e)
         {
             // 使用 BeginInvoke 延迟执行，避免事件冲突
-            this.BeginInvoke(new Action(() =>
+            this.BeginInvoke(new Action(async () =>
             {
-                if (listBox1.SelectedItem != null)
-                {
-                    listBox1.Items.Remove(listBox1.SelectedItem);
-                }
+                var box = (sender as ListBox);
+                var item = box.SelectedItems[0];
+                string[] listArr = item?.ToString().Split("||");
+                var id = listArr[3].ToString().ObjToInt();
+
+                await new SqliteContext().Db.Deleteable<ApiHistory>().Where(r => r.Id == id).ExecuteCommandAsync();
+                BindHistory();
             }));
         }
+
+
+        private void HZColor()
+        {
+            // 定义颜色方案
+            Color keyColor = Color.Blue;           // 键的颜色
+            Color stringColor = Color.Brown;       // 字符串值的颜色
+            Color numberColor = Color.Green;       // 数字的颜色
+            Color booleanColor = Color.Magenta;    // 布尔值的颜色
+
+            // 使用正则表达式匹配并着色
+            HighlightPattern(@"""[^""\\]*(?:\\.[^""\\]*)*""\s*:", keyColor); // 匹配 "key":
+            HighlightPattern(@":\s*""[^""\\]*(?:\\.[^""\\]*)*""", stringColor); // 匹配 : "value"
+            HighlightPattern(@":\s*\d+\.?\d*", numberColor); // 匹配 : 123 或 : 12.34
+            HighlightPattern(@":\s*(true|false)", booleanColor); // 匹配 : true 或 : false
+
+            // 恢复重绘
+            txtMingW.ResumeLayout();
+        }
+
+        /// <summary>
+        /// 使用正则表达式查找匹配项并设置颜色
+        /// </summary>
+        /// <param name="pattern">正则表达式模式</param>
+        /// <param name="color">要应用的颜色</param>
+        private void HighlightPattern(string pattern, Color color)
+        {
+            Regex regex = new Regex(pattern);
+            string text = txtMingW.Text;
+            MatchCollection matches = regex.Matches(text);
+
+            foreach (Match match in matches)
+            {
+                // 选中匹配到的文本范围
+                txtMingW.Select(match.Index, match.Length);
+                // 设置选中部分的颜色
+                txtMingW.SelectionColor = color;
+            }
+
+            // 重置选择，避免光标停留在最后一个匹配项
+            txtMingW.Select(0, 0);
+        }
+
+        #endregion
 
     }
 }

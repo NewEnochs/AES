@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 
-namespace AES
+namespace AES.Util
 {
     public static class Logger
     {

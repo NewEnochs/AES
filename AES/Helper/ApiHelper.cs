@@ -1,6 +1,7 @@
 ﻿using AES;
 using AES.Helper;
 using AES.Model;
+using API.DBEntity.Model;
 using System;
 using System.Net;
 using System.Net.Http;
@@ -36,11 +37,11 @@ namespace AES
                 url = url.Replace("//", "/").Replace("http:/", "http://");
                 if (type == 2)
                 {
-                   var resData= await HttpApi(url, jsonstr);
+                    var resData = await HttpApi(url, jsonstr);
                     return resData;
                 }
 
-                
+
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
 
                 request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml,*/*");
@@ -88,7 +89,7 @@ namespace AES
 
 
         /// <summary>
-        /// 慢病平台请求
+        /// 公卫服务请求
         /// </summary>
         /// <param name="url"></param>
         /// <param name="jsonstr"></param>
@@ -96,7 +97,7 @@ namespace AES
         /// <param name="type"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static async Task<MessageInfo> HttpApi(string url, string jsonstr = "", int ymdz = 0, string type = "POST")
+        public static async Task<MessageInfo> HttpApi(string url, string jsonstr = "", int ymdz = 0, string type = "POST", string token = "")
         {
             string requestUrl = url;
 
@@ -107,7 +108,8 @@ namespace AES
                     requestUrl);
 
                 request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml,*/*");
-                request.Headers.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiLllrvmnKzlhYgiLCJqdGkiOiI2MmE2NTg1NC00NmYyLTRlOTYtYmJiMS0zMTc0YTIzMTYxY2MiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6WyIxMDAwMDEiLCIxMDAwMDExMTAwMSJdLCJuYmYiOjE3Njk1ODAzNjksImV4cCI6MTc2OTY2Njc2OSwiaXNzIjoiZXN0IiwiYXVkIjoiY2hpc3VpIn0.Wn1B9GQVR6qetpZO5G_lUrjlJsxkIsG7pgunrH5nl0M");
+                request.Headers.Add("Authorization", "Bearer " + token);
+                //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiLllrvmnKzlhYgiLCJqdGkiOiI2MmE2NTg1NC00NmYyLTRlOTYtYmJiMS0zMTc0YTIzMTYxY2MiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6WyIxMDAwMDEiLCIxMDAwMDExMTAwMSJdLCJuYmYiOjE3Njk1ODAzNjksImV4cCI6MTc2OTY2Njc2OSwiaXNzIjoiZXN0IiwiYXVkIjoiY2hpc3VpIn0.Wn1B9GQVR6qetpZO5G_lUrjlJsxkIsG7pgunrH5nl0M
                 request.Headers.Add("JTI", "62a65854-46f2-4e96-bbb1-3174a23161cc");
                 var requestData = new { RSASTR = jsonstr };
                 string requestJson = JsonSerializer.Serialize(requestData);

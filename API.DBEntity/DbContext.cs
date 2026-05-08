@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace AES.Model
+namespace API.DBEntity.Model
 {
     public class DbContext
     {
