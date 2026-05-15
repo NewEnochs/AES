@@ -53,7 +53,12 @@ namespace API.DBEntity.Model
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTime? CreatedTime { get; set; }
+        public DateTime? CJSJ { get; set; }
+
+        // <summary>
+        /// 更新时间
+        /// </summary>
+        public DateTime? GXSJ { get; set; }
 
     }
 }

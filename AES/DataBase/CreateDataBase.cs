@@ -89,7 +89,8 @@ namespace AES.DataBase
                     ResponseBody TEXT,
                     Token TEXT,
                     StatusCode INT,
-                    CreatedTime DATETIME DEFAULT (datetime('now', 'localtime'))
+                    CJSJ DATETIME DEFAULT (datetime('now', 'localtime')),
+                    GXSJ DATETIME DEFAULT (datetime('now', 'localtime'))
                 );";
 
                 using (var command = new SqliteCommand(createTableSql, connection))

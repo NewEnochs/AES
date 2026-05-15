@@ -69,7 +69,7 @@ namespace AES
             button7 = new Button();
             btnSMS = new Button();
             label9 = new Label();
-            button8 = new Button();
+            button9 = new Button();
             SuspendLayout();
             // 
             // label1
@@ -398,7 +398,7 @@ namespace AES
             // 
             // button7
             // 
-            button7.Location = new Point(995, 126);
+            button7.Location = new Point(996, 128);
             button7.Name = "button7";
             button7.Size = new Size(113, 23);
             button7.TabIndex = 3;
@@ -425,15 +425,15 @@ namespace AES
             label9.TabIndex = 8;
             label9.Text = "请求记录";
             // 
-            // button8
+            // button9
             // 
-            button8.Location = new Point(1114, 128);
-            button8.Name = "button8";
-            button8.Size = new Size(113, 23);
-            button8.TabIndex = 3;
-            button8.Text = "清空重建数据库";
-            button8.UseVisualStyleBackColor = true;
-            button8.Click += button8_Click;
+            button9.Location = new Point(1115, 128);
+            button9.Name = "button9";
+            button9.Size = new Size(54, 23);
+            button9.TabIndex = 3;
+            button9.Text = "刷新";
+            button9.UseVisualStyleBackColor = true;
+            button9.Click += button9_Click;
             // 
             // Form1
             // 
@@ -453,7 +453,7 @@ namespace AES
             Controls.Add(btnEmptyResult);
             Controls.Add(bntFormat);
             Controls.Add(button2);
-            Controls.Add(button8);
+            Controls.Add(button9);
             Controls.Add(button7);
             Controls.Add(button3);
             Controls.Add(button4);
@@ -528,6 +528,6 @@ namespace AES
         private Button button7;
         private Button btnSMS;
         private Label label9;
-        private Button button8;
+        private Button button9;
     }
 }

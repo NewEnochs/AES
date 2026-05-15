@@ -6,6 +6,7 @@ using API.DBEntity.Model;
 using NetTaste;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SqlSugar;
 using SqlSugar.Extensions;
 using System;
 using System.Collections;
@@ -316,9 +317,7 @@ namespace AES
             }
             finally
             {
-                var entity = new SqliteContext().Db.Insertable(history).ExecuteReturnEntity();
-
-                BindHistory(entity);
+                BindHistory(history);
             }
         }
         #endregion
@@ -557,18 +556,6 @@ namespace AES
 
         private void button7_Click(object sender, EventArgs e)
         {
-            CreateDataBase.CreateDatabaseAndTable();
-        }
-        #endregion
-
-        #region 清空重建
-        /// <summary>
-        /// 清空重建数据库
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void button8_Click(object sender, EventArgs e)
-        {
             CreateDataBase.RecreateDatabase();
         }
         #endregion
@@ -585,7 +572,8 @@ namespace AES
                 RequestMethod = "POST",
                 RequestBody = txtMW.Text,
                 ResponseBody = "",
-                CreatedTime = DateTime.Now,
+                CJSJ = DateTime.Now,
+                GXSJ = DateTime.Now,
                 Token = txtToken.Text,
 
             };
@@ -598,21 +586,35 @@ namespace AES
 
         public void BindHistory(ApiHistory? history = null)
         {
-            if (history != null)
-            {
-                var fullUrlParam = history.RequestRootPath + "||" + history.RequestUrl + "||" + history.RequestBody + "||" + history.Id;
-                if (!listBox1.Items.Contains(fullUrlParam))
-                {
-                    //历史记录
-                    listBox1.Items.Insert(0, fullUrlParam);
-                }
-                return;
-            }
-
             using var context = new SqliteContext();
 
+            bool isRefresh = false;
+            if (history != null)
+            {
+                var historyInfo = context.Db.Queryable<ApiHistory>().First(r => r.RequestRootPath == history.RequestRootPath && r.RequestUrl == history.RequestUrl && r.RequestBody == history.RequestBody);
+
+                if (historyInfo == null)
+                {
+                    historyInfo = context.Db.Insertable(history).ExecuteReturnEntity();
+                    var fullUrlParam = historyInfo.RequestRootPath + "||" + historyInfo.RequestUrl + "||" + historyInfo.RequestBody + "||" + historyInfo.Id;
+                    listBox1.Items.Add(fullUrlParam);
+                }
+                else
+                {
+                    historyInfo.GXSJ = DateTime.Now;
+                    context.Db.Updateable(historyInfo).UpdateColumns(r => r.GXSJ).ExecuteCommand();
+                    isRefresh = true;
+                }
+
+                if (!isRefresh)
+                {
+                    return;
+                }
+            }
+
+
             listBox1.Items.Clear();
-            var list = context.Db.Queryable<ApiHistory>().OrderByDescending(r => r.CreatedTime).Take(50).ToList();
+            var list = context.Db.Queryable<ApiHistory>().OrderByDescending(r => r.GXSJ).Take(50).ToList();
             foreach (var item in list)
             {
                 var fullUrlParam = item.RequestRootPath + "||" + item.RequestUrl + "||" + item.RequestBody + "||" + item.Id;
@@ -628,7 +630,11 @@ namespace AES
         #endregion
 
         #region 其他方法
-
+        /// <summary>
+        /// 双击移除
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void listBox1_DoubleClick(object sender, EventArgs e)
         {
             // 使用 BeginInvoke 延迟执行，避免事件冲突
@@ -688,5 +694,17 @@ namespace AES
 
         #endregion
 
+        #region 刷新 请求记录
+        /// <summary>
+        /// 刷新 请求记录
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            BindHistory();
+        }
+        #endregion
     }
 }
