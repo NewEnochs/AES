@@ -13,6 +13,7 @@ using System.Collections;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Policy;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 
@@ -235,6 +236,7 @@ namespace AES
         /// </summary>
         private async void btnRequest_Click(object sender, EventArgs e)
         {
+            var now = DateTime.Now;
             ApiHistory history = new ApiHistory();
             try
             {
@@ -307,7 +309,24 @@ namespace AES
                     }
                 }
 
+                if (!string.IsNullOrWhiteSpace(info.data))
+                {
+                    string decyptData = string.Empty;
+                    if (type == 1)
+                    {
+                        decyptData = FilterAES.FileterDecrypt(info.data);
+                    }
+                    else if (type == 2)
+                    {
+                        decyptData = CHISAES.DecompressString(info.data);
+                    }
+                    txtMingwIn.Text = formatJson(decyptData);
+                }
                 HZColor();
+                var new_now = DateTime.Now;
+                var second = new_now.Subtract(now).TotalSeconds;
+                var secondText = $"{txtUrl.Text} 响应时长:{second}秒";
+                lblXYSC.Text = secondText;
             }
             catch (Exception ex)
             {
@@ -435,6 +454,7 @@ namespace AES
         private void btnEmptyResult_Click(object sender, EventArgs e)
         {
             txtMingW.Text = string.Empty;
+            txtMingwIn.Text = string.Empty;
         }
         #endregion
 
@@ -642,11 +662,7 @@ namespace AES
             {
                 var box = (sender as ListBox);
                 var item = box.SelectedItems[0];
-                string[] listArr = item?.ToString().Split("||");
-                var id = listArr[3].ToString().ObjToInt();
-
-                await new SqliteContext().Db.Deleteable<ApiHistory>().Where(r => r.Id == id).ExecuteCommandAsync();
-                BindHistory();
+                DelItem(item);
             }));
         }
 
@@ -667,6 +683,7 @@ namespace AES
 
             // 恢复重绘
             txtMingW.ResumeLayout();
+            txtMingwIn.ResumeLayout();
         }
 
         /// <summary>
@@ -690,6 +707,21 @@ namespace AES
 
             // 重置选择，避免光标停留在最后一个匹配项
             txtMingW.Select(0, 0);
+
+            Regex regex1 = new Regex(pattern);
+            string text1 = txtMingwIn.Text;
+            MatchCollection matches1 = regex1.Matches(text1);
+
+            foreach (Match match in matches1)
+            {
+                // 选中匹配到的文本范围
+                txtMingwIn.Select(match.Index, match.Length);
+                // 设置选中部分的颜色
+                txtMingwIn.SelectionColor = color;
+            }
+
+            // 重置选择，避免光标停留在最后一个匹配项
+            txtMingwIn.Select(0, 0);
         }
 
         #endregion
@@ -706,5 +738,36 @@ namespace AES
             BindHistory();
         }
         #endregion
+
+
+
+        private async Task DelItem(object item)
+        {
+            string[] listArr = item?.ToString().Split("||");
+            var id = listArr[3].ToString().ObjToInt();
+
+            await new SqliteContext().Db.Deleteable<ApiHistory>().Where(r => r.Id == id).ExecuteCommandAsync();
+            BindHistory();
+        }
+
+        private void DleItemOp_Click(object sender, EventArgs e)
+        {
+            var selItem = listBox1.SelectedItem;
+            DelItem(selItem);
+        }
+
+        #region 执行SQL窗体
+        /// <summary>
+        /// 执行SQL窗体
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button10_Click(object sender, EventArgs e)
+        {
+            ExecuteSQLForm frm = new ExecuteSQLForm();
+            frm.ShowDialog();
+
+            #endregion
+        }
     }
 }

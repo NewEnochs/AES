@@ -30,6 +30,7 @@ namespace AES
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             label1 = new Label();
             txtMY = new TextBox();
@@ -66,10 +67,17 @@ namespace AES
             button5 = new Button();
             button6 = new Button();
             listBox1 = new ListBox();
+            contextMenuStrip1 = new ContextMenuStrip(components);
+            DleItemOp = new ToolStripMenuItem();
             button7 = new Button();
             btnSMS = new Button();
             label9 = new Label();
             button9 = new Button();
+            txtMingwIn = new RichTextBox();
+            button8 = new Button();
+            lblXYSC = new Label();
+            button10 = new Button();
+            contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // label1
@@ -270,7 +278,7 @@ namespace AES
             // 
             // button2
             // 
-            button2.Location = new Point(243, 905);
+            button2.Location = new Point(329, 1066);
             button2.Name = "button2";
             button2.Size = new Size(128, 23);
             button2.TabIndex = 3;
@@ -308,7 +316,7 @@ namespace AES
             // 
             // bntFormat
             // 
-            bntFormat.Location = new Point(377, 905);
+            bntFormat.Location = new Point(463, 1066);
             bntFormat.Name = "bntFormat";
             bntFormat.Size = new Size(128, 23);
             bntFormat.TabIndex = 3;
@@ -318,7 +326,7 @@ namespace AES
             // 
             // btnEmptyResult
             // 
-            btnEmptyResult.Location = new Point(511, 905);
+            btnEmptyResult.Location = new Point(597, 1066);
             btnEmptyResult.Name = "btnEmptyResult";
             btnEmptyResult.Size = new Size(128, 23);
             btnEmptyResult.TabIndex = 3;
@@ -328,7 +336,7 @@ namespace AES
             // 
             // btnEmptyAll
             // 
-            btnEmptyAll.Location = new Point(645, 905);
+            btnEmptyAll.Location = new Point(731, 1066);
             btnEmptyAll.Name = "btnEmptyAll";
             btnEmptyAll.Size = new Size(128, 23);
             btnEmptyAll.TabIndex = 3;
@@ -341,7 +349,7 @@ namespace AES
             txtMingW.Location = new Point(87, 528);
             txtMingW.Name = "txtMingW";
             txtMingW.ScrollBars = RichTextBoxScrollBars.Vertical;
-            txtMingW.Size = new Size(895, 362);
+            txtMingW.Size = new Size(739, 532);
             txtMingW.TabIndex = 5;
             txtMingW.Text = "";
             // 
@@ -368,7 +376,7 @@ namespace AES
             // 
             // button5
             // 
-            button5.Location = new Point(81, 905);
+            button5.Location = new Point(167, 1066);
             button5.Name = "button5";
             button5.Size = new Size(75, 23);
             button5.TabIndex = 2;
@@ -378,7 +386,7 @@ namespace AES
             // 
             // button6
             // 
-            button6.Location = new Point(162, 905);
+            button6.Location = new Point(248, 1066);
             button6.Name = "button6";
             button6.Size = new Size(75, 23);
             button6.TabIndex = 2;
@@ -388,13 +396,27 @@ namespace AES
             // 
             // listBox1
             // 
+            listBox1.ContextMenuStrip = contextMenuStrip1;
             listBox1.FormattingEnabled = true;
             listBox1.Location = new Point(996, 195);
             listBox1.Name = "listBox1";
-            listBox1.Size = new Size(348, 650);
+            listBox1.Size = new Size(427, 327);
             listBox1.TabIndex = 7;
             listBox1.SelectedIndexChanged += listBox1_SelectedIndexChanged;
             listBox1.DoubleClick += listBox1_DoubleClick;
+            // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { DleItemOp });
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(101, 26);
+            // 
+            // DleItemOp
+            // 
+            DleItemOp.Name = "DleItemOp";
+            DleItemOp.Size = new Size(100, 22);
+            DleItemOp.Text = "删除";
+            DleItemOp.Click += DleItemOp_Click;
             // 
             // button7
             // 
@@ -435,12 +457,52 @@ namespace AES
             button9.UseVisualStyleBackColor = true;
             button9.Click += button9_Click;
             // 
+            // txtMingwIn
+            // 
+            txtMingwIn.Location = new Point(832, 528);
+            txtMingwIn.Name = "txtMingwIn";
+            txtMingwIn.ScrollBars = RichTextBoxScrollBars.Vertical;
+            txtMingwIn.Size = new Size(593, 532);
+            txtMingwIn.TabIndex = 9;
+            txtMingwIn.Text = "";
+            // 
+            // button8
+            // 
+            button8.Location = new Point(86, 1066);
+            button8.Name = "button8";
+            button8.Size = new Size(75, 23);
+            button8.TabIndex = 3;
+            button8.Text = "请求";
+            button8.UseVisualStyleBackColor = true;
+            button8.Click += btnRequest_Click;
+            // 
+            // lblXYSC
+            // 
+            lblXYSC.AutoSize = true;
+            lblXYSC.Location = new Point(85, 131);
+            lblXYSC.Name = "lblXYSC";
+            lblXYSC.Size = new Size(56, 17);
+            lblXYSC.TabIndex = 8;
+            lblXYSC.Text = "响应时长";
+            // 
+            // button10
+            // 
+            button10.Location = new Point(829, 13);
+            button10.Name = "button10";
+            button10.Size = new Size(94, 23);
+            button10.TabIndex = 2;
+            button10.Text = "执行SQL";
+            button10.UseVisualStyleBackColor = true;
+            button10.Click += button10_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoScroll = true;
-            ClientSize = new Size(1427, 950);
+            ClientSize = new Size(1435, 1101);
+            Controls.Add(txtMingwIn);
+            Controls.Add(lblXYSC);
             Controls.Add(label9);
             Controls.Add(listBox1);
             Controls.Add(chkWeb);
@@ -457,6 +519,7 @@ namespace AES
             Controls.Add(button7);
             Controls.Add(button3);
             Controls.Add(button4);
+            Controls.Add(button8);
             Controls.Add(btnRequest);
             Controls.Add(button6);
             Controls.Add(btnJiemi);
@@ -479,11 +542,13 @@ namespace AES
             Controls.Add(label7);
             Controls.Add(label6);
             Controls.Add(label1);
+            Controls.Add(button10);
             Controls.Add(button1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form1";
             Text = "加解密工具";
             Load += Form1_Load;
+            contextMenuStrip1.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -529,5 +594,11 @@ namespace AES
         private Button btnSMS;
         private Label label9;
         private Button button9;
+        private RichTextBox txtMingwIn;
+        private Button button8;
+        private ContextMenuStrip contextMenuStrip1;
+        private ToolStripMenuItem DleItemOp;
+        private Label lblXYSC;
+        private Button button10;
     }
 }
