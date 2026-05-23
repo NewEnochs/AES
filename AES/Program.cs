@@ -1,3 +1,5 @@
+using AES.Helper;
+using AES.Helper.ItemValueHelper;
 using AES.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,38 +16,33 @@ namespace AES
         [STAThread]
         static void Main()
         {
-            // 创建宿主环境，自动加载 appsettings.json
+            // 创建宿主环境
             var host = Host.CreateDefaultBuilder()
                 .ConfigureAppConfiguration((context, config) =>
                 {
-                    // 确保读取当前目录下的 appsettings.json
+                    // 确保读取当前目录下的 itemValue.json
                     config.SetBasePath(AppContext.BaseDirectory)
-                          .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                          .AddJsonFile("itemValue.json", optional: false, reloadOnChange: true);
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    // 将配置绑定到 AppSettings 类
-                    services.Configure<AppSettingsModel>(context.Configuration.GetSection("")); // 因为JSON根节点就是这些属性
+                    // 绑定配置到实体类
+                    services.Configure<ItemValuesData>(context.Configuration);
 
-                    // 注册你的 Form
+                    // 注册配置服务（方便获取配置实例）
+                    services.AddSingleton<IItemValueService, ItemValueService>();
+
+                    // 注册你的 Form（通过服务提供者创建，这样才能注入依赖）
                     services.AddSingleton<Form1>();
                 })
                 .Build();
 
-            // 获取配置实例供全局使用（或者通过构造函数注入到 Form 中）
-            var appSettings = host.Services.GetRequiredService<IOptions<AppSettingsModel>>().Value;
-
-            //// 示例：在启动前验证配置
-            //if (appSettings.Addresses.Count == 0)
-            //{
-            //    MessageBox.Show("配置文件加载失败或地址列表为空！");
-            //    return;
-            //}
-
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
+            // 运行应用程序
             ApplicationConfiguration.Initialize();
-            Application.Run(new Form1());
+
+            // 从服务容器中获取 Form1 实例
+            var form1 = host.Services.GetRequiredService<Form1>();
+            Application.Run(form1);
         }
     }
 }

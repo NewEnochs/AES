@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Images\lock.ico</ApplicationIcon>
     <OutputPath>..\publish</OutputPath>
+    <NoWarn>$(NoWarn);WFO5002</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,6 +32,9 @@
 
   <ItemGroup>
     <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="itemValue.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

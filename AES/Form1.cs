@@ -12,6 +12,7 @@ using System;
 using System.Collections;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Policy;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -566,7 +567,6 @@ namespace AES
         }
         #endregion
 
-
         #region 初始化数据库
         /// <summary>
         /// 初始化数据
@@ -739,7 +739,7 @@ namespace AES
         }
         #endregion
 
-
+        #region 删除请求记录
 
         private async Task DelItem(object item)
         {
@@ -756,7 +756,9 @@ namespace AES
             DelItem(selItem);
         }
 
-        #region 执行SQL窗体
+        #endregion
+
+        #region 执行SQL窗体 弹出
         /// <summary>
         /// 执行SQL窗体
         /// </summary>

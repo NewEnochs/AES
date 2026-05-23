@@ -12,7 +12,6 @@
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.GroupBox groupBoxScripts;
         private System.Windows.Forms.GroupBox groupBoxLog;
-        private System.Windows.Forms.ComboBox cmbConnectionString;
         private System.Windows.Forms.Button btnTestConnection;
         private System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Label lblConn;
@@ -58,7 +57,6 @@
             groupBoxScripts = new GroupBox();
             groupBoxLog = new GroupBox();
             btnClearLog = new Button();
-            cmbConnectionString = new ComboBox();
             btnTestConnection = new Button();
             progressBar = new ProgressBar();
             lblConn = new Label();
@@ -68,6 +66,9 @@
             lblTimeout = new Label();
             cmbDbType = new ComboBox();
             lblDbType = new Label();
+            cmbRegion = new ComboBox();
+            label1 = new Label();
+            txtConn = new TextBox();
             contextMenuScripts.SuspendLayout();
             groupBoxScripts.SuspendLayout();
             groupBoxLog.SuspendLayout();
@@ -84,7 +85,7 @@
             btnSelectFolder.Text = "📁 选择文件夹";
             toolTip.SetToolTip(btnSelectFolder, "选择包含SQL脚本文件的文件夹");
             btnSelectFolder.UseVisualStyleBackColor = true;
-            //btnSelectFolder.Click += BtnSelectFolder_Click;
+            btnSelectFolder.Click += BtnSelectFolder_Click;
             // 
             // btnExecute
             // 
@@ -98,7 +99,7 @@
             btnExecute.Text = "▶ 执行所有脚本";
             toolTip.SetToolTip(btnExecute, "执行列表中所有待执行的SQL脚本");
             btnExecute.UseVisualStyleBackColor = false;
-            //btnExecute.Click += BtnExecute_Click;
+            btnExecute.Click += BtnExecute_Click;
             // 
             // listViewScripts
             // 
@@ -210,28 +211,18 @@
             btnClearLog.TabIndex = 4;
             btnClearLog.Text = "清空";
             btnClearLog.UseVisualStyleBackColor = true;
-            //btnClearLog.Click += BtnClearLog_Click;
-            // 
-            // cmbConnectionString
-            // 
-            cmbConnectionString.Font = new Font("Consolas", 9F);
-            cmbConnectionString.Location = new Point(275, 53);
-            cmbConnectionString.Name = "cmbConnectionString";
-            cmbConnectionString.Size = new Size(350, 22);
-            cmbConnectionString.TabIndex = 7;
-            toolTip.SetToolTip(cmbConnectionString, "数据库连接字符串，例如：Server=localhost;Database=master;Integrated Security=true;");
             // 
             // btnTestConnection
             // 
             btnTestConnection.Font = new Font("微软雅黑", 9F);
-            btnTestConnection.Location = new Point(631, 51);
+            btnTestConnection.Location = new Point(833, 80);
             btnTestConnection.Name = "btnTestConnection";
             btnTestConnection.Size = new Size(90, 27);
             btnTestConnection.TabIndex = 8;
             btnTestConnection.Text = "测试连接";
             toolTip.SetToolTip(btnTestConnection, "测试数据库连接是否正常");
             btnTestConnection.UseVisualStyleBackColor = true;
-            //btnTestConnection.Click += BtnTestConnection_Click;
+            btnTestConnection.Click += BtnTestConnection_Click;
             // 
             // progressBar
             // 
@@ -245,7 +236,7 @@
             // 
             lblConn.AutoSize = true;
             lblConn.Font = new Font("微软雅黑", 9F);
-            lblConn.Location = new Point(192, 56);
+            lblConn.Location = new Point(344, 54);
             lblConn.Name = "lblConn";
             lblConn.Size = new Size(71, 17);
             lblConn.TabIndex = 10;
@@ -288,28 +279,59 @@
             cmbDbType.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbDbType.Font = new Font("微软雅黑", 9F);
             cmbDbType.Items.AddRange(new object[] { "Dm", "SqlServer", "MySql", "Oracle", "Sqlite", "PostgreSQL" });
-            cmbDbType.Location = new Point(86, 53);
+            cmbDbType.Location = new Point(238, 51);
             cmbDbType.Name = "cmbDbType";
             cmbDbType.Size = new Size(100, 25);
             cmbDbType.TabIndex = 14;
-            //cmbDbType.SelectedIndexChanged += CmbDbType_SelectedIndexChanged;
+            cmbDbType.SelectedIndexChanged += CmbDbType_SelectedIndexChanged;
             // 
             // lblDbType
             // 
             lblDbType.AutoSize = true;
             lblDbType.Font = new Font("微软雅黑", 9F);
-            lblDbType.Location = new Point(12, 56);
+            lblDbType.Location = new Point(164, 54);
             lblDbType.Name = "lblDbType";
             lblDbType.Size = new Size(71, 17);
             lblDbType.TabIndex = 15;
             lblDbType.Text = "数据库类型:";
             // 
+            // cmbRegion
+            // 
+            cmbRegion.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbRegion.Font = new Font("微软雅黑", 9F);
+            cmbRegion.Items.AddRange(new object[] { "Dm", "SqlServer", "MySql", "Oracle", "Sqlite", "PostgreSQL" });
+            cmbRegion.Location = new Point(52, 51);
+            cmbRegion.Name = "cmbRegion";
+            cmbRegion.Size = new Size(100, 25);
+            cmbRegion.TabIndex = 14;
+            cmbRegion.SelectedIndexChanged += cmbRegion_SelectedIndexChanged;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("微软雅黑", 9F);
+            label1.Location = new Point(12, 54);
+            label1.Name = "label1";
+            label1.Size = new Size(35, 17);
+            label1.TabIndex = 15;
+            label1.Text = "区域:";
+            // 
+            // txtConn
+            // 
+            txtConn.Location = new Point(421, 51);
+            txtConn.Name = "txtConn";
+            txtConn.Size = new Size(502, 23);
+            txtConn.TabIndex = 16;
+            // 
             // ExecuteSQLForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(856, 615);
+            ClientSize = new Size(935, 615);
+            Controls.Add(txtConn);
             Controls.Add(btnClearLog);
+            Controls.Add(label1);
+            Controls.Add(cmbRegion);
             Controls.Add(lblDbType);
             Controls.Add(cmbDbType);
             Controls.Add(lblTimeout);
@@ -318,7 +340,6 @@
             Controls.Add(lblConn);
             Controls.Add(progressBar);
             Controls.Add(btnTestConnection);
-            Controls.Add(cmbConnectionString);
             Controls.Add(groupBoxLog);
             Controls.Add(groupBoxScripts);
             Controls.Add(lblStatus);
@@ -329,6 +350,7 @@
             Name = "ExecuteSQLForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "SQL脚本批量执行工具";
+            Load += ExecuteSQLForm_Load;
             contextMenuScripts.ResumeLayout(false);
             groupBoxScripts.ResumeLayout(false);
             groupBoxLog.ResumeLayout(false);
@@ -336,5 +358,8 @@
             ResumeLayout(false);
             PerformLayout();
         }
+        private ComboBox cmbRegion;
+        private Label label1;
+        private TextBox txtConn;
     }
 }

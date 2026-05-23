@@ -1,12 +1,16 @@
-﻿using System;
+﻿using AES.Helper;
+using AES.Helper.ItemValueHelper;
+using SqlSugar;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using SqlSugar;
 
 namespace AES
 {
@@ -16,6 +20,7 @@ namespace AES
     public partial class ExecuteSQLForm : Form
     {
         private List<ScriptFile> scriptFiles = new List<ScriptFile>();
+        private List<ConnStringData> connList = new List<ConnStringData>();
         private SqlSugarClient db;
         private string connectionString = "Server=172.2.3.232;PORT=5236;User Id=HC_REGIONCDS;PWD=2x!31xGW#$pgOwBg";
         private CancellationTokenSource cancellationTokenSource;
@@ -25,17 +30,11 @@ namespace AES
             InitializeComponent();
             InitializeCustomComponents();
             SetupEventHandlers();
-            LoadDefaultConnectionStrings();
-            // 设置默认数据库类型
-            if (cmbDbType.Items.Count > 0)
-                cmbDbType.SelectedIndex = 0;
+            //LoadDefaultConnectionStrings();   
         }
 
         private void InitializeCustomComponents()
         {
-            // 设置默认连接字符串
-            cmbConnectionString.Text = connectionString;
-
             // 设置ListView的排序功能
             listViewScripts.ColumnClick += ListViewScripts_ColumnClick;
 
@@ -51,24 +50,33 @@ namespace AES
 
         private void SetupEventHandlers()
         {
-            btnSelectFolder.Click += BtnSelectFolder_Click;
-            btnTestConnection.Click += BtnTestConnection_Click;
-            btnExecute.Click += BtnExecute_Click;
+            //btnSelectFolder.Click += BtnSelectFolder_Click;
+            //btnTestConnection.Click += BtnTestConnection_Click;
+            //btnExecute.Click += BtnExecute_Click;
             btnClearLog.Click += BtnClearLog_Click;
-            cmbDbType.SelectedIndexChanged += CmbDbType_SelectedIndexChanged;
+            //cmbDbType.SelectedIndexChanged += CmbDbType_SelectedIndexChanged;
         }
 
-        private void LoadDefaultConnectionStrings()
-        {
-            cmbConnectionString.Items.Add("Server=localhost;Database=master;Integrated Security=true;");
-            cmbConnectionString.Items.Add("Server=(localdb)\\MSSQLLocalDB;Database=master;Integrated Security=true;");
-            cmbConnectionString.Items.Add("Server=.\\SQLEXPRESS;Database=master;Integrated Security=true;");
-            cmbConnectionString.Items.Add("Data Source=.;Initial Catalog=master;Integrated Security=True;");
-        }
-
-        private void InitializeSqlSugarClient()
+        private async Task InitializeSqlSugarClient()
         {
             var dbType = GetDbTypeFromComboBox();
+
+            // 如果是 SQL Server，强制添加连接超时
+            if (dbType == DbType.SqlServer)
+            {
+                // 检查是否已有 Connection Timeout 设置
+                if (!connectionString.Contains("Connection Timeout") &&
+                    !connectionString.Contains("Connect Timeout"))
+                {
+                    connectionString += ";Connection Timeout=3;"; // 设置 3 秒超时
+                }
+
+                // 同时添加 SSL 参数（解决证书问题）
+                if (!connectionString.Contains("Encrypt="))
+                {
+                    connectionString += ";Encrypt=True;TrustServerCertificate=True;";
+                }
+            }
 
             var connectionConfig = new ConnectionConfig
             {
@@ -79,9 +87,10 @@ namespace AES
                 MoreSettings = new ConnMoreSettings
                 {
                     IsAutoRemoveDataCache = true,
-                    IsWithNoLockQuery = true
+                    IsWithNoLockQuery = true,
                 }
             };
+
 
             db = new SqlSugarClient(connectionConfig);
 
@@ -115,12 +124,12 @@ namespace AES
 
         private DbType GetDbTypeFromComboBox()
         {
-            switch (cmbDbType.SelectedItem?.ToString())
+            switch (cmbDbType.SelectedValue?.ToString().ToUpper())
             {
-                case "Dm":
+                case "DM":
                     return DbType.Dm;
-                case "MySql":
-                    return DbType.MySql;
+                case "SQL SERVER":
+                    return DbType.SqlServer;
                 case "Oracle":
                     return DbType.Oracle;
                 case "Sqlite":
@@ -135,21 +144,17 @@ namespace AES
         private void CmbDbType_SelectedIndexChanged(object sender, EventArgs e)
         {
             // 当数据库类型改变时，更新连接字符串示例
-            var dbType = cmbDbType.SelectedItem?.ToString();
-            switch (dbType)
+            string name = cmbRegion.Text;
+            var dbType = cmbDbType.SelectedValue?.ToString();
+
+            var model = connList.FirstOrDefault(r => r.Name == name);
+            if (model != null && model.connData != null)
             {
-                case "MySql":
-                    toolTip.SetToolTip(cmbConnectionString, "MySQL示例: Server=localhost;Database=test;Uid=root;Pwd=123456;");
-                    break;
-                case "Oracle":
-                    toolTip.SetToolTip(cmbConnectionString, "Oracle示例: Data Source=localhost:1521/ORCL;User Id=system;Password=123456;");
-                    break;
-                case "Sqlite":
-                    toolTip.SetToolTip(cmbConnectionString, "Sqlite示例: Data Source=database.sqlite;");
-                    break;
-                default:
-                    toolTip.SetToolTip(cmbConnectionString, "SQL Server示例: Server=localhost;Database=master;Integrated Security=true;");
-                    break;
+                var conn = model.connData.FirstOrDefault(r => r.DbType == dbType);
+                if (conn != null)
+                {
+                    txtConn.Text = conn.ConnString;
+                }
             }
         }
 
@@ -187,7 +192,7 @@ namespace AES
                         FilePath = file,
                         FileName = Path.GetFileName(file),
                         Status = "待执行",
-                        Content = await File.ReadAllTextAsync(file, Encoding.UTF8)
+                        Content = await File.ReadAllTextAsync(file, Encoding.GetEncoding("gb2312"))
                     };
                     scriptFiles.Add(script);
                     AddScriptToListView(script);
@@ -258,17 +263,31 @@ namespace AES
 
         private async void BtnExecute_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(cmbConnectionString.Text))
+            if (string.IsNullOrEmpty(txtConn.Text))
             {
                 MessageBox.Show("请先设置数据库连接字符串", "提示",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            connectionString = cmbConnectionString.Text;
+            connectionString = txtConn.Text;
+
+            var dbType = GetDbTypeFromComboBox();
+
+            // 先快速检测网络和端口是否可达
+            if (dbType == DbType.SqlServer)
+            {
+                bool isReachable = await QuickNetworkCheckAsync(connectionString);
+                if (!isReachable)
+                {
+                    MessageBox.Show("网络不可达或端口不通，请检查服务器地址和端口", "错误",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
 
             // 重新初始化 SqlSugarClient
-            InitializeSqlSugarClient();
+            await InitializeSqlSugarClient();
 
             // 测试连接
             if (!await TestDatabaseConnection())
@@ -467,11 +486,26 @@ namespace AES
         {
             try
             {
-                connectionString = cmbConnectionString.Text;
+                connectionString = txtConn.Text;
+
+                var dbType = GetDbTypeFromComboBox();
+
+                // 先快速检测网络和端口是否可达
+                if (dbType == DbType.SqlServer)
+                {
+                    bool isReachable = await QuickNetworkCheckAsync(connectionString);
+                    if (!isReachable)
+                    {
+                        MessageBox.Show("网络不可达或端口不通，请检查服务器地址和端口", "错误",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                }
 
                 // 重新初始化 SqlSugarClient
-                InitializeSqlSugarClient();
+                await InitializeSqlSugarClient();
 
+                db.Ado.ExecuteCommand("select 1");
                 //if (await TestDatabaseConnection())
                 //{
                 MessageBox.Show("数据库连接成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -612,6 +646,101 @@ namespace AES
                 );
             }
         }
+
+        private void ExecuteSQLForm_Load(object sender, EventArgs e)
+        {
+            connList = new ItemValueConfig().GetData<ConnStringData>("connStringData");
+            cmbRegion.DataSource = connList;
+            cmbRegion.ValueMember = "Id";
+            cmbRegion.DisplayMember = "Name";
+
+            var defaultRegionName = new ItemValueConfig().GetData("defaultRegion");
+            // 直接设置选中的对象
+            var defaultItem = connList.FirstOrDefault(x => x.Name == defaultRegionName);
+            if (defaultItem != null)
+            {
+                cmbRegion.SelectedItem = defaultItem;
+            }
+            else
+            {
+                cmbRegion.SelectedIndex = 0;
+            }
+        }
+
+        private void cmbRegion_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var name = cmbRegion.Text;
+            var conn = connList.FirstOrDefault(r => r.Name == name);
+            if (conn != null)
+            {
+                txtConn.Text = conn.ConnString;
+
+                loadDbType(conn.Name);
+            }
+            //toolTip.SetToolTip(cmbConnectionString, conn.ConnString);
+        }
+
+        private void loadDbType(string name)
+        {
+            if (!string.IsNullOrEmpty(name))
+            {
+                var dataList = connList.Where(r => r.Name == name).ToList();
+
+                if (dataList != null && dataList.Count > 0)
+                {
+                    var model = dataList[0];
+                    cmbDbType.DataSource = model.connData == null ? dataList : model.connData;
+                    cmbDbType.ValueMember = "DbType";
+                    cmbDbType.DisplayMember = "DbTypeName";
+                    cmbDbType.SelectedIndex = 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 快速网络检测（仅用于 SQL Server）
+        /// </summary>
+        private async Task<bool> QuickNetworkCheckAsync(string connectionString)
+        {
+            try
+            {
+                // 解析连接字符串获取服务器和端口
+                var serverMatch = Regex.Match(connectionString, @"(?:Server|Data Source)=([^;]+)");
+                if (!serverMatch.Success) return false;
+
+                var serverPart = serverMatch.Groups[1].Value;
+                string host;
+                int port = 1433; // 默认端口
+
+                if (serverPart.Contains(","))
+                {
+                    var parts = serverPart.Split(',');
+                    host = parts[0];
+                    int.TryParse(parts[1], out port);
+                }
+                else
+                {
+                    host = serverPart;
+                }
+
+                // 使用 TcpClient 快速检测端口是否开放（超时 1 秒）
+                using (var tcpClient = new TcpClient())
+                {
+                    var connectTask = tcpClient.ConnectAsync(host, port);
+                    if (await Task.WhenAny(connectTask, Task.Delay(1000)) == connectTask)
+                    {
+                        await connectTask;
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
 
     public class ScriptFile
