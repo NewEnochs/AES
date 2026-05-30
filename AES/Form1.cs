@@ -48,7 +48,11 @@ namespace AES
             txtPwd.Text = "Estoom@?2023";
             button1_Click(null, null);
 
-            BindHistory();
+            try
+            {
+                BindHistory();
+            }
+            catch { CreateDataBase.RecreateDatabase(); }
         }
         #endregion
 

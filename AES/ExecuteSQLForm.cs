@@ -22,9 +22,12 @@ namespace AES
         private List<ScriptFile> scriptFiles = new List<ScriptFile>();
         private List<ConnStringData> connList = new List<ConnStringData>();
         private SqlSugarClient db;
-        private string connectionString = "Server=172.2.3.232;PORT=5236;User Id=HC_REGIONCDS;PWD=2x!31xGW#$pgOwBg";
+        private string connectionString = string.Empty;
         private CancellationTokenSource cancellationTokenSource;
 
+        /// <summary>
+        /// 窗体
+        /// </summary>
         public ExecuteSQLForm()
         {
             InitializeComponent();
@@ -64,6 +67,7 @@ namespace AES
             // 如果是 SQL Server，强制添加连接超时
             if (dbType == DbType.SqlServer)
             {
+                connectionString = txtConn.Text;
                 // 检查是否已有 Connection Timeout 设置
                 if (!connectionString.Contains("Connection Timeout") &&
                     !connectionString.Contains("Connect Timeout"))
@@ -192,7 +196,8 @@ namespace AES
                         FilePath = file,
                         FileName = Path.GetFileName(file),
                         Status = "待执行",
-                        Content = await File.ReadAllTextAsync(file, Encoding.GetEncoding("gb2312"))
+                        Content = await File.ReadAllTextAsync(file, Encoding.UTF8)
+                        //Content = await File.ReadAllTextAsync(file, Encoding.GetEncoding("gb2312"))
                     };
                     scriptFiles.Add(script);
                     AddScriptToListView(script);
@@ -427,8 +432,13 @@ namespace AES
                 {
                     if (string.IsNullOrWhiteSpace(sql)) continue;
 
-                    // 使用 SqlSugar 执行SQL
-                    await Task.Run(() => db.Ado.ExecuteCommand(sql));
+                    string[] sqlArr = sql.Split(';');
+                    foreach (var i_sql in sqlArr)
+                    {
+                        if (string.IsNullOrWhiteSpace(i_sql)) { continue; }
+                        // 使用 SqlSugar 执行SQL
+                        await Task.Run(() => db.Ado.ExecuteCommand(i_sql));
+                    }
                 }
 
                 // 提交事务
