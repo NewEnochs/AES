@@ -185,25 +185,37 @@ namespace AES
         {
             try
             {
+                // 1. 获取所有 .sql 文件路径
                 var sqlFiles = Directory.GetFiles(folderPath, "*.sql", SearchOption.AllDirectories);
+
                 scriptFiles.Clear();
                 listViewScripts.Items.Clear();
 
-                foreach (var file in sqlFiles.OrderBy(f => f))
+                // 2. 【核心调整】使用 FileInfo 获取 LastWriteTime 并按降序排列（最新的在最前）
+                // 如果需要按最旧到最新，将 descending 改为 ascending 即可
+
+                var orderedFiles = sqlFiles.Select(f => new
+                {
+                    FilePath = f,
+                    ModifiedTime = new FileInfo(f).LastWriteTime
+                }).OrderBy(x => x.ModifiedTime)
+                    .Select(x => x.FilePath);
+
+                foreach (var file in orderedFiles)
                 {
                     var script = new ScriptFile
                     {
                         FilePath = file,
                         FileName = Path.GetFileName(file),
                         Status = "待执行",
+                        // 建议结合我们之前讨论的编码问题，这里可以后续加上智能编码检测
                         Content = await File.ReadAllTextAsync(file, Encoding.UTF8)
-                        //Content = await File.ReadAllTextAsync(file, Encoding.GetEncoding("gb2312"))
                     };
                     scriptFiles.Add(script);
                     AddScriptToListView(script);
                 }
 
-                AppendLog($"✓ 找到 {scriptFiles.Count} 个SQL脚本文件", Color.Green);
+                AppendLog($"✓ 找到 {scriptFiles.Count} 个SQL脚本文件（已按修改日期排序）", Color.Green);
 
                 if (scriptFiles.Count == 0)
                 {
@@ -431,13 +443,26 @@ namespace AES
                 foreach (var sql in sqlCommands)
                 {
                     if (string.IsNullOrWhiteSpace(sql)) continue;
-
-                    string[] sqlArr = sql.Split(';');
-                    foreach (var i_sql in sqlArr)
+                    if (sql.ToUpper().Contains("DECLARE"))
                     {
-                        if (string.IsNullOrWhiteSpace(i_sql)) { continue; }
-                        // 使用 SqlSugar 执行SQL
-                        await Task.Run(() => db.Ado.ExecuteCommand(i_sql));
+                        string[] sqlArr = sql.ToUpper().Split("END;");
+                        foreach (var i_sql in sqlArr)
+                        {
+                            if (string.IsNullOrWhiteSpace(i_sql)) { continue; }
+                            string sqls = i_sql + "\r\n END;";
+                            // 使用 SqlSugar 执行SQL
+                            await Task.Run(() => db.Ado.ExecuteCommand(sqls));
+                        }
+                    }
+                    else
+                    {
+                        string[] sqlArr = sql.Split(';');
+                        foreach (var i_sql in sqlArr)
+                        {
+                            if (string.IsNullOrWhiteSpace(i_sql)) { continue; }
+                            // 使用 SqlSugar 执行SQL
+                            await Task.Run(() => db.Ado.ExecuteCommand(i_sql));
+                        }
                     }
                 }
 

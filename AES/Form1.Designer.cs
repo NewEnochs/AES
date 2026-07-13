@@ -77,6 +77,7 @@ namespace AES
             button8 = new Button();
             lblXYSC = new Label();
             button10 = new Button();
+            textBox1 = new TextBox();
             contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -495,12 +496,21 @@ namespace AES
             button10.UseVisualStyleBackColor = true;
             button10.Click += button10_Click;
             // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(1067, 167);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(356, 23);
+            textBox1.TabIndex = 10;
+            textBox1.KeyUp += textBox1_KeyUp;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoScroll = true;
             ClientSize = new Size(1435, 1101);
+            Controls.Add(textBox1);
             Controls.Add(txtMingwIn);
             Controls.Add(lblXYSC);
             Controls.Add(label9);
@@ -600,5 +610,6 @@ namespace AES
         private ToolStripMenuItem DleItemOp;
         private Label lblXYSC;
         private Button button10;
+        private TextBox textBox1;
     }
 }

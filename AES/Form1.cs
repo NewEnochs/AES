@@ -346,8 +346,6 @@ namespace AES
         }
         #endregion
 
-
-
         #region 提取内部加密数据  解密
         /// <summary>
         /// 提取内部加密数据  解密
@@ -365,7 +363,7 @@ namespace AES
                 {
                     decyptData = CHISAES.DecompressString(info.data);
                 }
-                txtMingW.Text = formatJson(decyptData);
+                txtMingwIn.Text = formatJson(decyptData);
             }
 
             HZColor();
@@ -621,7 +619,7 @@ namespace AES
                 {
                     historyInfo = context.Db.Insertable(history).ExecuteReturnEntity();
                     var fullUrlParam = historyInfo.RequestRootPath + "||" + historyInfo.RequestUrl + "||" + historyInfo.RequestBody + "||" + historyInfo.Id;
-                    listBox1.Items.Add(fullUrlParam);
+                    listBox1.Items.Insert(0, fullUrlParam);
                 }
                 else
                 {
@@ -772,8 +770,43 @@ namespace AES
         {
             ExecuteSQLForm frm = new ExecuteSQLForm();
             frm.ShowDialog();
-
-            #endregion
         }
+        #endregion
+
+        #region 文本筛选
+       
+        private void textBox1_KeyUp(object sender, KeyEventArgs e)
+        {
+            string text = textBox1.Text.Trim();
+
+            if (e.KeyValue == 13)
+            {
+                using var context = new SqliteContext();
+                var query = context.Db.Queryable<ApiHistory>();
+                List<ApiHistory> list = new List<ApiHistory>();
+                if (string.IsNullOrEmpty(text))
+                {
+                    list = query.ToList();
+                }
+                else
+                {
+
+                    list = context.Db.Queryable<ApiHistory>().Where(r => r.RequestUrl.Contains(text) || r.RequestRootPath.Contains(text)).OrderByDescending(r => r.GXSJ).Take(50).ToList();
+                }
+
+                listBox1.Items.Clear();
+                foreach (var item in list)
+                {
+                    var fullUrlParam = item.RequestRootPath + "||" + item.RequestUrl + "||" + item.RequestBody + "||" + item.Id;
+                    if (!listBox1.Items.Contains(fullUrlParam))
+                    {
+                        //历史记录
+                        listBox1.Items.Add(fullUrlParam);
+                    }
+                }
+            }
+        }
+
+        #endregion
     }
 }

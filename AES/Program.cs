@@ -16,6 +16,7 @@ namespace AES
         [STAThread]
         static void Main()
         {
+            string zxlx = "";
             // 创建宿主环境
             var host = Host.CreateDefaultBuilder()
                 .ConfigureAppConfiguration((context, config) =>
@@ -32,17 +33,33 @@ namespace AES
                     // 注册配置服务（方便获取配置实例）
                     services.AddSingleton<IItemValueService, ItemValueService>();
 
-                    // 注册你的 Form（通过服务提供者创建，这样才能注入依赖）
-                    services.AddSingleton<Form1>();
+                     zxlx = new ItemValueConfig().GetData("ZXLX");
+                    if (zxlx == "0")
+                    {
+                        services.AddSingleton<ExecuteSQLForm>();
+                    }
+                    else
+                    {
+                        // 注册你的 Form（通过服务提供者创建，这样才能注入依赖）
+                        services.AddSingleton<Form1>();
+                    }
                 })
                 .Build();
 
             // 运行应用程序
             ApplicationConfiguration.Initialize();
 
-            // 从服务容器中获取 Form1 实例
-            var form1 = host.Services.GetRequiredService<Form1>();
-            Application.Run(form1);
+            if (zxlx == "0")
+            {
+                var form1 = host.Services.GetRequiredService<ExecuteSQLForm>();
+                Application.Run(form1);
+            }
+            else
+            {
+                // 从服务容器中获取 Form1 实例
+                var form1 = host.Services.GetRequiredService<Form1>();
+                Application.Run(form1);
+            }
         }
     }
 }
